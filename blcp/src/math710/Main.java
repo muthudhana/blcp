@@ -2,15 +2,13 @@
  * Main.java
  *
  * Created on January 31, 2006, 10:23 AM
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
  */
 
 package math710;
 import java.io.*;
 import java.util.*;
 import sparsearray.*;
+import gnu.getopt.*;
 
 /**
  *
@@ -21,6 +19,13 @@ public class Main {
     /** Creates a new instance of Main */
     public Main() {
         
+    }
+    
+    public static void main (String[] args) {
+        Getopt go = new Getopt("test", args, "");
+        
+        
+        System.out.println("Hello World!");
     }
     
     public static void Project4(String[] args) {
@@ -340,7 +345,7 @@ public class Main {
     }
 //
 //    // use serialized data and cluster... FINALLY!
-     public static void main(String[] args){
+     public static void assaasdmain(String[] args){
 
         BirchKmeans bkm = null;
         String dirs = "c:\\EnronSample\\";
