@@ -15,111 +15,109 @@ import gnu.getopt.*;
  * @author mike
  */
 public class Main {
-    
-    /** Creates a new instance of Main */
-    public Main() {
-        
+
+  /** Creates a new instance of Main */
+  public Main() {}
+
+  public static void main (String[] args) {
+    Getopt go = new Getopt ("test", args, "");
+    System.out.println ("Hello World!");
+  }
+
+  public static void Project4 (String[] args) {
+
+    if (args.length < 2) {
+      System.out.println ("Usage: ");
+      System.out.println ("java -Xms250m -Xmx750m -jar MATH710.jar stoplist.txt directory1 diectory2 ... ");
     }
-    
-    public static void main (String[] args) {
-        Getopt go = new Getopt("test", args, "");
-        System.out.println("Hello World!");
+
+    PDDP vsm = null;
+
+    try {
+      vsm = new PDDP (new Stemmer(), args[0]);
+    } catch (Exception e) {
+      System.out.println (e);
+      System.out.println ("Unable to load stop list!");
+      return;
     }
-    
-    public static void Project4(String[] args) {
-        
-        if(args.length < 2){
-            System.out.println("Usage: ");
-            System.out.println("java -Xms250m -Xmx750m -jar MATH710.jar stoplist.txt directory1 diectory2 ... ");
-        }
-        
-        PDDP vsm = null;
-        
-        try {
-            vsm = new PDDP(new Stemmer(), args[0]);
-        } catch (Exception e){
-            System.out.println(e);
-            System.out.println("Unable to load stop list!");
-            return;
-        }
-        
-        long docStart = new Date().getTime();
-        
-        int sourceId = 1;
-        
-        for(int i = 1; i < args.length; ++i){
-            
-            File f = new File(args[i]);
-            
-            int singleFileSourceId = 0;
-            
-            if(f.exists() == false){
-                continue;
+
+    long docStart = new Date().getTime();
+
+    int sourceId = 1;
+
+    for (int i = 1; i < args.length; ++i) {
+
+      File f = new File (args[i]);
+
+      int singleFileSourceId = 0;
+
+      if (f.exists() == false) {
+        continue;
+      }
+
+      if (f.isFile() ) {
+        // Skip files, we specify in the usage statement we only want directories.
+        // vsm.addDocument(args[i], singleFileSourceId);
+      } else if (f.isDirectory() ) {
+        vsm.addDirectory (args[i], sourceId++);
+      }
+    }
+
+    long docStop = new Date().getTime();
+
+    System.out.println ("\nAll documents are loaded!...\nLoading and parsing took: " + (docStop - docStart) + " ms");
+
+    System.out.println ("Model currently has " + vsm.getNumberOfDistinctTerms() + " distinct terms!");
+    System.out.println ("Model currently has " + vsm.getNumberOfTerms() + " total terms!");
+    System.out.println ("Model currently has " + vsm.getNumberOfDocuments() + " documents!");
+
+    vsm.useNHighVarianceTerms (1000);
+
+    System.out.println ("\nBegining Clustering Analysis\n");
+    long start = new Date().getTime();
+
+    System.out.println ("Calculating PDDP Partitions...");
+    Cluster[] c = vsm.cluster (sourceId - 1);
+
+    /*
+            // randomly build clusters...
+            // To enable, uncomment this big block of code, and then comment out
+            // the line immediately preceding it.
+
+            Cluster[] c = new Cluster[3];
+            int numDocs = vsm.getNumberOfDocuments();
+
+            java.util.Random myRand = new java.util.Random();
+            myRand.setSeed((new java.util.Date()).getTime());
+
+            c[0] = new Cluster(vsm);
+            c[1] = new Cluster(vsm);
+            c[2] = new Cluster(vsm);
+
+            for(int i = 0; i < numDocs; ++i){
+                int cluster = myRand.nextInt(3);
+                c[cluster].addDocument(vsm.getDocument(i));
             }
-            
-            if(f.isFile()){
-                // Skip files, we specify in the usage statement we only want directories.
-                // vsm.addDocument(args[i], singleFileSourceId);
-            } else if (f.isDirectory()){
-                vsm.addDirectory(args[i], sourceId++);
-            }
-        }
-        
-        long docStop = new Date().getTime();
-        
-        System.out.println("\nAll documents are loaded!...\nLoading and parsing took: " + (docStop - docStart) + " ms");
-        
-        System.out.println("Model currently has " + vsm.getNumberOfDistinctTerms() + " distinct terms!");
-        System.out.println("Model currently has " + vsm.getNumberOfTerms() + " total terms!");
-        System.out.println("Model currently has " + vsm.getNumberOfDocuments() + " documents!");
-        
-         vsm.useNHighVarianceTerms(1000);
-        
-        System.out.println("\nBegining Clustering Analysis\n");
-        long start = new Date().getTime();
-        
-        System.out.println("Calculating PDDP Partitions...");
-        Cluster[] c = vsm.cluster(sourceId - 1);
-        
-/*
-        // randomly build clusters...
-        // To enable, uncomment this big block of code, and then comment out
-        // the line immediately preceding it.
- 
-        Cluster[] c = new Cluster[3];
-        int numDocs = vsm.getNumberOfDocuments();
- 
-        java.util.Random myRand = new java.util.Random();
-        myRand.setSeed((new java.util.Date()).getTime());
- 
-        c[0] = new Cluster(vsm);
-        c[1] = new Cluster(vsm);
-        c[2] = new Cluster(vsm);
- 
-        for(int i = 0; i < numDocs; ++i){
-            int cluster = myRand.nextInt(3);
-            c[cluster].addDocument(vsm.getDocument(i));
-        }
- 
- */
-        System.out.println("");
-        for(int i = 0; i < 3; ++i){
-            System.out.println("Initial Partion #" + i + " has " + c[i].getNumberOfDocuments() + " documents.");
-        }
-        
-        System.out.println("\nUsing the initial partition as input to Batch K-Means...");
-        System.out.println("Running Batch K-Means...");
-        
-        Kmeans km = new Kmeans(vsm, c);
-        km.cluster(35);
-        
-        long stop = new Date().getTime();
-        System.out.println("Total time for complete analysis is: " + (stop - start) + " ms");
+
+     */
+    System.out.println ("");
+    for (int i = 0; i < 3; ++i) {
+      System.out.println ("Initial Partion #" + i + " has " + c[i].getNumberOfDocuments() + " documents.");
     }
 
+    System.out.println ("\nUsing the initial partition as input to Batch K-Means...");
+    System.out.println ("Running Batch K-Means...");
+
+    Kmeans km = new Kmeans (vsm, c);
+    km.cluster (35);
+
+    long stop = new Date().getTime();
+    System.out.println ("Total time for complete analysis is: " + (stop - start) + " ms");
+  }
 
 
-/* IGNORE EVERYTHING BELOW THIS LINE PLEASE... ITS JUST TESTING CODE! */
+
+  /* IGNORE EVERYTHING BELOW THIS LINE PLEASE... ITS JUST TESTING CODE! */
 
 //    public static void Wmain(String[] args){
 //        ColumnCompressedVector cv = new ColumnCompressedVector();
@@ -287,41 +285,41 @@ public class Main {
 ////        System.out.println("Document has " + doc.getNumberOfTerms() + " terms.");
 ////    }
 //
-    /** previous run command: java -Xms250m -Xmx750m -jar MATH710.jar "f:\My Documents\Java Projects\MATH710\stopList.txt" "f:\My Documents\Java Projects\MATH710\enron\maildir" */
-    public static void INITBIRCHmain(String[] args){
+  /** previous run command: java -Xms250m -Xmx750m -jar MATH710.jar "f:\My Documents\Java Projects\MATH710\stopList.txt" "f:\My Documents\Java Projects\MATH710\enron\maildir" */
+  public static void INITBIRCHmain (String[] args) {
 
-        BirchKmeans bkm = null;
+    BirchKmeans bkm = null;
 
-        System.out.println("Loading...");
+    System.out.println ("Loading...");
 
-        System.out.println("Creating new BirchKmeans object...");
-        try {
-            bkm = new BirchKmeans(new Stemmer(), "f:\\My Documents\\Java Projects\\MATH710\\stopList.txt");
-        } catch (Exception e){
-            System.out.println(e);
-            System.out.println("Unable to load stop list!");
-            return;
-        }
-        System.out.println("Object loaded...");
+    System.out.println ("Creating new BirchKmeans object...");
+    try {
+      bkm = new BirchKmeans (new Stemmer(), "f:\\My Documents\\Java Projects\\MATH710\\stopList.txt");
+    } catch (Exception e) {
+      System.out.println (e);
+      System.out.println ("Unable to load stop list!");
+      return;
+    }
+    System.out.println ("Object loaded...");
 
 
-        String[] dirs = new String[1];
-        dirs[0] = "c:\\EnronSample\\";
-        int numAdded = 0;
-           
-        bkm.createSerializedDocuments("f:\\My Documents\\Java Projects\\MATH710\\enron\\maildir\\", 1, dirs[0], 1);
-            
-        numAdded = bkm.incorporateSerializedDocumentsPhase1(dirs[0]);
-        System.out.println("PHASE 1 INCORPORATED " + numAdded + " documents!");
-            
-        try {
-            System.out.println("Saving BKM after phase 1 but BEFORE term reduction!");
-            BirchKmeans.serializeBirchKMeans(bkm, dirs[0] + File.separatorChar + "BKM.dat.pre-phase2");
-            System.out.println("BKM Saved successfully...");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-            
+    String[] dirs = new String[1];
+    dirs[0] = "c:\\EnronSample\\";
+    int numAdded = 0;
+
+    bkm.createSerializedDocuments ("f:\\My Documents\\Java Projects\\MATH710\\enron\\maildir\\", 1, dirs[0], 1);
+
+    numAdded = bkm.incorporateSerializedDocumentsPhase1 (dirs[0]);
+    System.out.println ("PHASE 1 INCORPORATED " + numAdded + " documents!");
+
+    try {
+      System.out.println ("Saving BKM after phase 1 but BEFORE term reduction!");
+      BirchKmeans.serializeBirchKMeans (bkm, dirs[0] + File.separatorChar + "BKM.dat.pre-phase2");
+      System.out.println ("BKM Saved successfully...");
+    } catch (Exception ex) {
+      ex.printStackTrace();
+    }
+
 //        try {
 //            bkm = BirchKmeans.deserializeBirchKmeans(dirs[0] + File.separatorChar + "BKM.dat.pre-phase2");
 //            System.out.println("Deserialization of BKM pre-phase2 complete!");
@@ -329,44 +327,44 @@ public class Main {
 //            ex.printStackTrace();
 //            System.exit(-1);
 //        }
-//        
-        bkm.useNHighVarianceTerms(1500);
+//
+    bkm.useNHighVarianceTerms (1500);
 
-        numAdded = bkm.incorporateSerializedDocumentsPhase2(dirs[0]);
-        System.out.println("PHASE 2 INCORPORATED " + numAdded + " documents!");
+    numAdded = bkm.incorporateSerializedDocumentsPhase2 (dirs[0]);
+    System.out.println ("PHASE 2 INCORPORATED " + numAdded + " documents!");
 
-        try {
-            BirchKmeans.serializeBirchKMeans(bkm, dirs[0] + File.separatorChar + "BKM.dat");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+    try {
+      BirchKmeans.serializeBirchKMeans (bkm, dirs[0] + File.separatorChar + "BKM.dat");
+    } catch (Exception ex) {
+      ex.printStackTrace();
     }
+  }
 //
 //    // use serialized data and cluster... FINALLY!
-     public static void assaasdmain(String[] args){
+  public static void assaasdmain (String[] args) {
 
-        BirchKmeans bkm = null;
-        String dirs = "c:\\EnronSample\\";
-        
-        int maxClusterSize = 250;
-        double capacityFraction = 0.8;
-        
-        System.out.println("Loading...");
-        try {
-            bkm = BirchKmeans.deserializeBirchKmeans(dirs + File.separatorChar + "BKM.dat");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            System.exit(-1);
-        }
-        System.out.println("Deserialization of BirchKmeans object complete...");
-        System.out.println("Initiating Clustering Algorithm at " + new Date().getTime());
-        System.out.println("Max Cluster Size: " + maxClusterSize);
-        System.out.println("Capcity Fraction: " + capacityFraction);
-        System.out.println("I have generated " + bkm.clusterDocuments(maxClusterSize, capacityFraction) + " clusters!");
-        System.out.println("Partition Quality: " + bkm.getGeneratedPartitionQuality());
-        System.out.println("Completed at " + new Date().getTime());
+    BirchKmeans bkm = null;
+    String dirs = "c:\\EnronSample\\";
 
+    int maxClusterSize = 250;
+    double capacityFraction = 0.8;
+
+    System.out.println ("Loading...");
+    try {
+      bkm = BirchKmeans.deserializeBirchKmeans (dirs + File.separatorChar + "BKM.dat");
+    } catch (Exception ex) {
+      ex.printStackTrace();
+      System.exit (-1);
     }
+    System.out.println ("Deserialization of BirchKmeans object complete...");
+    System.out.println ("Initiating Clustering Algorithm at " + new Date().getTime() );
+    System.out.println ("Max Cluster Size: " + maxClusterSize);
+    System.out.println ("Capcity Fraction: " + capacityFraction);
+    System.out.println ("I have generated " + bkm.clusterDocuments (maxClusterSize, capacityFraction) + " clusters!");
+    System.out.println ("Partition Quality: " + bkm.getGeneratedPartitionQuality() );
+    System.out.println ("Completed at " + new Date().getTime() );
+
+  }
 //
 //      public static void NOGOmain(String[] args) {
 //        PDDP vsm = null;

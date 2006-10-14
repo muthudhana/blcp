@@ -22,26 +22,26 @@ import java.io.*;
  */
 public class StopList implements Serializable {
 
-    private IStemmer stemmer = null;
-    private String filename = null;
-    private Hashtable<String, Integer> terms = new Hashtable<String, Integer>();
-    
-    /** Creates a new instance of Document */
-    public StopList(IStemmer stemmer, String document) throws Exception {
-        
-        Tokenizer tok = new Tokenizer(stemmer, document); // Tokenize using porter
-        this.stemmer = stemmer;
-        this.filename = new String(document);
+  private IStemmer stemmer = null;
+  private String filename = null;
+  private Hashtable<String, Integer> terms = new Hashtable<String, Integer>();
 
-        String s = null;
-        
-        while((s = tok.nextToken()).length() > 0){
-            terms.put(s, 1);
-        }
+  /** Creates a new instance of Document */
+  public StopList (IStemmer stemmer, String document) throws Exception {
+
+    Tokenizer tok = new Tokenizer (stemmer, document); // Tokenize using porter
+    this.stemmer = stemmer;
+    this.filename = new String (document);
+
+    String s = null;
+
+    while ( (s = tok.nextToken() ).length() > 0) {
+      terms.put (s, 1);
     }
-    
-    public boolean containsTerm(String t){
-        t = this.stemmer.stem(t);
-        return(this.terms.containsKey(t));
-    }
+  }
+
+  public boolean containsTerm (String t) {
+    t = this.stemmer.stem (t);
+    return (this.terms.containsKey (t) );
+  }
 }
