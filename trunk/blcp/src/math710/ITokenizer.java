@@ -14,8 +14,8 @@ package math710;
  * @author mike
  */
 public interface ITokenizer {
-    
-    String nextToken() throws Exception;
-    String nextTokenUnstemmed() throws Exception;
-    
+
+  String nextToken() throws Exception;
+  String nextTokenUnstemmed() throws Exception;
+
 }

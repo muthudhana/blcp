@@ -14,22 +14,21 @@ package sparsearray;
  * @author mike
  */
 public class SparseVectorDimensionMismatch extends Exception {
-    
-    String message = null;
-    
-    /** Creates a new instance of SparseVectorDimensionMismatch */
-    public SparseVectorDimensionMismatch() {
+
+  String message = null;
+
+  /** Creates a new instance of SparseVectorDimensionMismatch */
+  public SparseVectorDimensionMismatch() {}
+
+  public SparseVectorDimensionMismatch (String message) {
+    this.message = message;
+  }
+
+  public String toString() {
+    if (message != null) {
+      return (message);
+    } else {
+      return ("SparseVectorDimensionMismatch");
     }
-    
-    public SparseVectorDimensionMismatch(String message){
-        this.message = message;
-    }
-    
-    public String toString(){
-        if(message != null){
-            return(message);
-        } else {
-            return("SparseVectorDimensionMismatch");
-        }
-    }
+  }
 }

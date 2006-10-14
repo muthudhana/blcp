@@ -14,5 +14,5 @@ package math710;
  * @author mike
  */
 public interface IStemmer {
-    String stem(String t);
+  String stem (String t);
 }

@@ -31,7 +31,7 @@ public class SkipList {
   public static final long HEADER_KEY = -2;    // key=-2 means header element
   // all keys have to be smaller than this one:
   public static final long NIL_KEY    = Integer.MAX_VALUE;
-  
+
   public static final float OPT_PROB = 0.25f; // optimum probability
 
 
@@ -42,16 +42,16 @@ public class SkipList {
   //   So if you expect to have 10000 nodes, call the
   //   constructor as SkipList(10000).
   //
-  public SkipList(long maxNodes) {
+  public SkipList (long maxNodes) {
     // call the constructor (2) with a calculated maximum level
     // and probability set to OPT_PROP=0.25
     // Maximum level of list is depending on expected number of nodes
     // (see paper for mathematical background)
-    this(OPT_PROB, 
-        (int)Math.ceil(Math.log(maxNodes)/Math.log(1/OPT_PROB))-1);
+    this (OPT_PROB,
+          (int) Math.ceil (Math.log (maxNodes) / Math.log (1 / OPT_PROB) ) - 1);
   }
 
-  
+
   ///////////////////////////////////////////////////////////////////////////
   // Constructor (2):
   //   Constructs a new skip list, where you can directly set the
@@ -59,24 +59,24 @@ public class SkipList {
   //   and maximum level of node in the list.
   //   If you are not sure, take constructor (1)!
   //
-  public SkipList(float probability, int maxLevel) {
+  public SkipList (float probability, int maxLevel) {
     myLevel = 0;                  // level of empty list
     myProbability = probability;
     myMaxLevel = maxLevel;
-    
+
     // generate the header of the list:
-    myHeader = new SkipListElement(myMaxLevel, HEADER_KEY, 0);
-    
+    myHeader = new SkipListElement (myMaxLevel, HEADER_KEY, 0);
+
     // append the "NIL" element to the header:
-    SkipListElement nilElement = 
-        new SkipListElement(myMaxLevel, NIL_KEY, 0);
-    for (int i=0; i<=myMaxLevel; i++) {
+    SkipListElement nilElement =
+      new SkipListElement (myMaxLevel, NIL_KEY, 0);
+    for (int i = 0; i <= myMaxLevel; i++) {
       myHeader.forward[i] = nilElement;
     }
 
   }
 
-    
+
   ///////////////////////////////////////////////////////////////////////////
   // generateRandomLevel():
   //   Generates with help of randomizer the level of a new element.
@@ -85,7 +85,7 @@ public class SkipList {
   //
   protected int generateRandomLevel() {
     int newLevel = 0;
-    while (newLevel<myMaxLevel && Math.random()<myProbability ) {
+    while (newLevel < myMaxLevel && Math.random() < myProbability ) {
       newLevel++;
     }
     return newLevel;
@@ -97,23 +97,23 @@ public class SkipList {
   //   Inserts a new node into the list.
   //   If the key already exists, its node is updated to the new value.
   //
-  public void insert(long searchKey, long value) {
+  public void insert (long searchKey, long value) {
     // update holds pointers to next elements on each level;
     // levels run from 0 up to myMaxLevel:
     SkipListElement[] update = new SkipListElement[myMaxLevel+1];
-    
+
     // init "cursor" element to header:
     SkipListElement element = myHeader;
-    
+
     // find place to insert the new node:
-    for (int i=myLevel; i>=0; i--) {
+    for (int i = myLevel; i >= 0; i--) {
       while (element.forward[i].key < searchKey) {
         element = element.forward[i];
       }
       update[i] = element;
     }
     element = element.forward[0];
-    
+
     // element with same key is overwritten:
     if (element.key == searchKey) {
       element.value = value;
@@ -124,15 +124,15 @@ public class SkipList {
       int newLevel = generateRandomLevel();
       // element has biggest level seen in this list: update list
       if (newLevel > myLevel) {
-        for (int i=myLevel+1; i<=newLevel; i++) {
+        for (int i = myLevel + 1; i <= newLevel; i++) {
           update[i] = myHeader;
         }
         myLevel = newLevel;
       }
 
       // allocate new element:
-      element = new SkipListElement(newLevel, searchKey, value);
-      for (short i=0; i<=newLevel; i++) {
+      element = new SkipListElement (newLevel, searchKey, value);
+      for (short i = 0; i <= newLevel; i++) {
         element.forward[i] = update[i].forward[i];
         update[i].forward[i] = element;
       }
@@ -145,12 +145,12 @@ public class SkipList {
   //   Search for a given key in list. you get the value associated
   //   with that key or the NOT_FOUND constant.
   //
-  public long search(long searchKey) {
+  public long search (long searchKey) {
     // init "cursor"-element to header:
     SkipListElement element = myHeader;
-    
+
     // find element in list:
-    for (int i=myLevel; i>=0; i--) {
+    for (int i = myLevel; i >= 0; i--) {
       SkipListElement nextElement = element.forward[i];
       while (nextElement.key < searchKey) {
         element = nextElement;
@@ -158,30 +158,29 @@ public class SkipList {
       }
     }
     element = element.forward[0];
-    
+
     // if key exists return value else return predefined NOT_FOUND:
     if (element.key == searchKey) {
       return element.value;
-    }
-    else {
+    } else {
       return NOT_FOUND;
     }
   }
 
-  
+
   ///////////////////////////////////////////////////////////////////////////
   // delete():
   //   If a node with the given key exists, remove it from list.
   //
-  public void delete(long searchKey) {
+  public void delete (long searchKey) {
     // update holds pointers to next elements of each level
     SkipListElement update[] = new SkipListElement[myMaxLevel+1];
 
     // init "cursor"-element to header:
     SkipListElement element = myHeader;
-    
+
     // find element in list:
-    for (int i=myLevel; i>=0; i--) {
+    for (int i = myLevel; i >= 0; i--) {
       SkipListElement nextElement = element.forward[i];
       while (nextElement.key < searchKey) {
         element = nextElement;
@@ -190,10 +189,10 @@ public class SkipList {
       update[i] = element;
     }
     element = element.forward[0];
-    
+
     // element found, so rebuild list without node:
     if (element.key == searchKey) {
-      for (int i=0; i<=myLevel; i++) {
+      for (int i = 0; i <= myLevel; i++) {
         if (update[i].forward[i] == element) {
           update[i].forward[i] = element.forward[i];
         }
@@ -201,8 +200,8 @@ public class SkipList {
       // element can be freed now (would happen automatically):
       element = null;               // garbage collector does the rest...
 
-      // maybe we have to downcorrect the level of the list: 
-      while (myLevel>0  &&  myHeader.forward[myLevel].key==NIL_KEY) {
+      // maybe we have to downcorrect the level of the list:
+      while (myLevel > 0  &&  myHeader.forward[myLevel].key == NIL_KEY) {
         myLevel--;
       }
     }
@@ -227,12 +226,12 @@ public class SkipList {
     SkipListElement element = myHeader.forward[0];
     int[] countLevel = new int[myMaxLevel+1];
     while (element.key != NIL_KEY) {
-      countLevel[element.getLevel()]++;
+      countLevel[element.getLevel() ]++;
       element = element.forward[0];
     }
 
-    for (int i=myMaxLevel; i>=0; i--) {
-      result += "    Number of Elements at level " + i + " = " + countLevel[i] +"\n";
+    for (int i = myMaxLevel; i >= 0; i--) {
+      result += "    Number of Elements at level " + i + " = " + countLevel[i] + "\n";
     }
     return result;
   }
@@ -261,16 +260,24 @@ public class SkipList {
   //
 
   // returns the current level of the list:
-  public int getLevel() { return myLevel; }
+  public int getLevel() {
+    return myLevel;
+  }
 
   // returns the maximum level, which can be reached:
-  public int getMaxLevel() { return myMaxLevel; }
+  public int getMaxLevel() {
+    return myMaxLevel;
+  }
 
   // returns the probability:
-  public float getProbability() { return myProbability; }
+  public float getProbability() {
+    return myProbability;
+  }
 
   // returns the header element:
-  public SkipListElement getHeader() { return myHeader; }
+  public SkipListElement getHeader() {
+    return myHeader;
+  }
 
 
   ///////////////////////////////////////////////////////////////////////////
