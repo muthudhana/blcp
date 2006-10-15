@@ -27,8 +27,7 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
   public BirchClusterOptions clusterOptions = null;
 
   /** Creates a new instance of BirchKmeans */
-  public BirchKmeans()
-      throws Exception {
+  public BirchKmeans() throws Exception {
     super();
     
     this.globalVectorSum = new SparseVector();
