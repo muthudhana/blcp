@@ -22,6 +22,8 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
   private int[] termReductionList = null;
   private java.util.Random myRand = null;
   
+  private boolean blockNewDocumentsAndTermReduction = false;
+  
   public BirchClusterOptions clusterOptions = null;
 
   /** Creates a new instance of BirchKmeans */
@@ -44,6 +46,11 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
     
   public int buildGlobalDictionaryFromSerializedRawDocuments(
       String serializedFilesPath, String outputDirectory) {
+    
+    if (this.blockNewDocumentsAndTermReduction == true) {
+      return -1;
+    }
+    
     File f = new File(serializedFilesPath);
     File[] files = f.listFiles();
 
@@ -102,6 +109,10 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
    */
   public int useGlobalDictionaryAndBuildNormalizedVectors(
       String serializedFilesPath, String outputDirectory) {
+    
+    // No new documents can be loaded and term reduction settings are locked
+    this.blockNewDocumentsAndTermReduction = true;
+    
     File f = new File(serializedFilesPath);
     File[] files = f.listFiles();
 
@@ -224,68 +235,108 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
    * quality bound as a parameter, and calls itself recursively. This should
    * improve performance when clustering, as the value is just passed around.
    */
-  public int clusterDocuments (int maxDocumentsPerCluster, 
+  public int clusterDocuments(int maxDocumentsPerCluster,
       double clusterDensityFactor) {
-    double upperQualityBound = clusterDensityFactor * 
+    double upperQualityBound = clusterDensityFactor *
         (this.getGlobalQuality() / this.getNumberOfDocuments());
     
-    System.out.println ("Global quality = " + this.getGlobalQuality() );
-    System.out.println ("num docs = " + this.numberOfDocuments);
-    System.out.println ("upper = " + upperQualityBound);
+    System.out.println("Global quality = " + this.getGlobalQuality() );
+    System.out.println("num docs = " + this.numberOfDocuments);
+    System.out.println("upper = " + upperQualityBound);
     
-    // reseed in case we are in a serialized object.
-    this.myRand.setSeed((new java.util.Date()).getTime()); 
-
-    ArrayList<DocumentTimeStruct> al = new ArrayList<DocumentTimeStruct>(pq);
-    System.out.println ("Al size " + al.size());
-    
-    while (al.size() > 0) {
-      int randIndex = this.myRand.nextInt(al.size());
-      Document doc = null;
-      try {
-        doc = Document.deserializeDocument(al.get (randIndex).getFilename());
-        al.remove (randIndex); // remove this document from the arraylist.
-      } catch (Exception ex) {
-        ex.printStackTrace();
+    if (this.clusterOptions.getClusteringOrder() == ClusteringOrder.RANDOM) {
+      // reseed in case we are in a serialized object.
+      this.myRand.setSeed((new java.util.Date()).getTime());
+      ArrayList<DocumentTimeStruct> al = new ArrayList<DocumentTimeStruct>(pq);
+      System.out.println("Al size " + al.size());
+      
+      while (al.size() > 0) {
+        int randIndex = this.myRand.nextInt(al.size());
+        Document doc = null;
+        try {
+          doc = Document.deserializeDocument(al.get(randIndex).getFilename());
+          al.remove(randIndex); // remove this document from the arraylist.
+        } catch (Exception ex) {
+          ex.printStackTrace();
+        }
+        System.out.println("Clustering document: " + doc.getFilename() );
+        System.out.println("Timestamp: " + doc.getTimestamp() );
+        this.clusterDocument(doc);
       }
-      System.out.println ("Clustering document: " + doc.getFilename() );
-      System.out.println ("Timestamp: " + doc.getTimestamp() );
-      this.clusterDocument (doc, maxDocumentsPerCluster, upperQualityBound);
+      return this.clusters.size();
+    } else if (this.clusterOptions.getClusteringOrder() == 
+        ClusteringOrder.TIMESTAMP_FORWARD) {
+      while (pq.size() > 0) {
+        DocumentTimeStruct dts = pq.poll();
+        Document doc = null;
+        
+        try {
+          doc = Document.deserializeDocument(dts.getFilename());
+        } catch (Exception ex) {
+          ex.printStackTrace();
+        }
+        
+        System.out.println("Clustering document: " + doc.getFilename());
+        System.out.println("Timestamp: " + doc.getTimestamp());
+        this.clusterDocument(doc);
+      }
+       return this.clusters.size();
+    } else if (this.clusterOptions.getClusteringOrder() ==
+        ClusteringOrder.TIMESTAMP_REVERSE) {
+      ArrayList<DocumentTimeStruct> al = new ArrayList<DocumentTimeStruct>();
+      
+      // Convert the priority queue into a sorted array list.
+      while (pq.peek() != null) {
+        al.add(pq.poll());
+      }
+      
+      // Since these are sorted in natural temporal ordering, we now reverse
+      // the entire array in place.
+      for (int i = 0; i < Math.floor(al.size() / 2); ++i) {
+        int farIdx = al.size() - (i + 1);
+        DocumentTimeStruct tmp = al.get(farIdx);
+        al.set(farIdx, al.get(i));
+        al.set(i, tmp);
+      }
+      
+      Iterator<DocumentTimeStruct> itr = al.iterator();
+      
+      while (itr.hasNext()) {
+        DocumentTimeStruct dts = itr.next();
+        Document doc = null;
+        try {
+          doc = Document.deserializeDocument(dts.getFilename());
+        } catch (Exception ex) {
+          ex.printStackTrace();
+        }
+        System.out.println("Clustering document: " + doc.getFilename() );
+        System.out.println("Timestamp: " + doc.getTimestamp() );
+        this.clusterDocument(doc);
+      }
+      return this.clusters.size();
     }
 
-    return this.clusters.size();
-
-//    while (pq.size() > 0) {
-//      DocumentTimeStruct dts = pq.poll();
-//      Document doc = null;
-//  
-//      try {
-//        doc = Document.deserializeDocument(dts.getFilename());
-//      } catch (Exception ex) {
-//        ex.printStackTrace();
-//      }
-//    
-//      System.out.println("Clustering document: " + doc.getFilename());
-//      System.out.println("Timestamp: " + doc.getTimestamp());
-//      this.clusterDocument(doc, maxDocumentsPerCluster, upperQualityBound);
-//    }
-//    return(this.clusters.size());
+    // Unreachable in theory . =]
+    return -1;
   }
 
   /* Not thread safe */
-  private int clusterDocument (Document doc, int L, double R) {
+  private int clusterDocument(Document doc) {
     int bestClusterIdx = -1;
     double qualityDeltaForBestCluster = Double.MAX_VALUE;
     double qualityForBestCluster = Double.MAX_VALUE;
-
-    System.out.println ("Pop Count of Doc Vec = " + 
+    int maxClusterSize = this.clusterOptions.getMaxClusterSize();
+    double upperQualityBound = this.clusterOptions.getCapacityFraction() * 
+        (this.getGlobalQuality() / this.getNumberOfDocuments());
+    
+    System.out.println("Pop Count of Doc Vec = " + 
         this.getNormalizedDocumentVector(doc).getPopCount());
 
     for (int i = 0; i < this.clusters.size(); ++i) {
       BirchCluster c = this.clusters.get(i);
       
-      if ((c.getNumberOfDocuments() + 1) > L) {
-        // we can't have more than L documents in any cluster, 
+      if ((c.getNumberOfDocuments() + 1) > maxClusterSize) {
+        // we can't have more than maxClusterSize documents in any cluster, 
         // just skip this cluster.
         continue;
       }
@@ -294,18 +345,9 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
           this.getNormalizedDocumentVector (doc) );
       double currentQuality = c.getQuality();
       double newQuality = qualityDelta + currentQuality;
-     
-//      System.out.println("QualityDelta = " + qualityDelta);
-//      System.out.println("QualityDeltaForBestCluster = " +
-//          qualityDeltaForBestCluster);
-//      System.out.println("newQuality = " + newQuality);
-//      System.out.println("R = " + R);
-//      
-//      System.out.println("Evaluating cluster #" + i + ": " + qualityDelta + 
-//          " < " + qualityDeltaForBestCluster + " && " + newQuality + " < " + R);
 
       if (qualityDelta < qualityDeltaForBestCluster && 
-          newQuality < R * (c.getNumberOfDocuments() + 1)) {
+          newQuality < upperQualityBound * (c.getNumberOfDocuments() + 1)) {
         bestClusterIdx = i;
         qualityDeltaForBestCluster = qualityDelta;
         qualityForBestCluster = newQuality;
@@ -379,6 +421,10 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
    * LEAD to undefined behavior and highly corrupted results!
    */
   public void useNHighVarianceTerms(int n) {
+    if (this.blockNewDocumentsAndTermReduction == true) {
+      return;
+    }
+    
     this.termReductionList = new int[n];
     int numTerms = this.getNumberOfDistinctTerms();
     double smallestVarianceInQueue = Double.MAX_VALUE;
