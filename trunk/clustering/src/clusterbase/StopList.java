@@ -1,12 +1,3 @@
-/*
- * StopList.java
- *
- * Created on February 13, 2006, 1:14 AM
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
- */
-
 package clusterbase;
 
 import java.util.*; // need Hashtable

@@ -3,7 +3,6 @@ package blc;
 import clusterbase.ClusteringModel;
 import clusterbase.Document;
 import clusterbase.DocumentTimeStruct;
-import clusterbase.IStemmer;
 import clusterbase.TermVarianceStructure;
 import java.util.*; // need Hashtable and ArrayList
 import java.io.*;  // need File
@@ -37,60 +36,6 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
 
     this.myRand = new java.util.Random();
     this.myRand.setSeed(new java.util.Date().getTime());
-  }
-
-  /**
-   * This function parses documents in a directory tree. The Document objects it
-   * creates are not linked to any particular model.  They do use the stemmer 
-   * and stopList of THIS model instance, but are free to be linked to any model
-   * by calling Document.setModel().
-   *
-   * The output files will be created in the provided outputDirectory according
-   * to some hierarchical scheme, no particular hierarchy is guaranteed.
-   *
-   * The outputDirectory would normally be provided to 
-   * this.incorporateSerializedDocuments()
-   */
-  public int createSerializedDocuments (String directory, int sourceId, 
-      String outputDirectory, int fileNum) {
-
-    File f = new File (directory);
-    File[] files = f.listFiles();
-    
-    int numDocumentsAdded = 0;
-
-    File output = new File (outputDirectory);
-    if (output.exists() == false) {
-      output.mkdirs();
-    }
-    
-    for (int i = 0; i < files.length; ++i) {
-      if (files[i].isDirectory()) {
-        int filesAdded = this.createSerializedDocuments(files[i].toString(),
-            sourceId, outputDirectory + File.separatorChar + files[i].getName(),
-            fileNum);
-        numDocumentsAdded += filesAdded;
-        fileNum += filesAdded;
-      }
-
-      if (files[i].isFile()) {
-        try {
-          Document doc = new Document (files[i].getAbsolutePath(),
-              this.stopList, this.stemmer, sourceId);
-          
-          Document.serializeDocument (doc, outputDirectory + 
-              File.separatorChar + Integer.toString (fileNum) + ".p1dat");
-          System.out.println ("Creating serialized document #" + fileNum);
-          
-          ++fileNum;
-          ++numDocumentsAdded;
-        } catch (Exception ex) {
-          ex.printStackTrace();
-          System.exit (-1);
-        }
-      }
-    }
-    return numDocumentsAdded;
   }
 
   /***

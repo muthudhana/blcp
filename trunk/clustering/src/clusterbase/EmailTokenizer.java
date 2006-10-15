@@ -1,12 +1,3 @@
-/*
- * Tokenizer.java
- *
- * Created on January 31, 2006, 10:24 AM
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
- */
-
 package clusterbase;
 
 import java.io.*;
@@ -15,10 +6,6 @@ import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.Date;
 
-/**
- *
- * @author mike
- */
 public class EmailTokenizer implements ITokenizer {
 
   public final static int MIN_TOKEN_LENGTH = 4;
@@ -31,8 +18,8 @@ public class EmailTokenizer implements ITokenizer {
   /**
    * Tokenize the file specified by the parameter.
    */
-  public EmailTokenizer (IStemmer stemmer, String filename) {
-    this.file = new File (filename);
+  public EmailTokenizer(IStemmer stemmer, String filename) {
+    this.file = new File(filename);
     this.nextToken = new StringBuilder();
     this.stemmer = stemmer;
     this.fr = null;
@@ -46,7 +33,7 @@ public class EmailTokenizer implements ITokenizer {
     if (this.fr == null) {
       try {
         // We must open the the file if possible!
-        this.fr = new FileReader (this.file);
+        this.fr = new FileReader(this.file);
       } catch (FileNotFoundException ex) {
         ex.printStackTrace();
       }
@@ -84,16 +71,14 @@ public class EmailTokenizer implements ITokenizer {
           ++length;
         }
       }
-      // System.out.print((char)scanCode);
     }
   }
 
   public long getTimestamp() {
-    return (this.messageTimestamp);
+    return this.messageTimestamp;
   }
 
   private void parseTimestamp() {
-
     if (this.messageTimestamp > 0) { // First date field is authoritative
       return;
     }
@@ -101,55 +86,55 @@ public class EmailTokenizer implements ITokenizer {
     StringBuffer sb = new StringBuffer();
     int scanCode = 0;
 
-    while ( (scanCode = this.nextChar() ) != ')') {
-      sb.append ( (char) scanCode);
+    while ((scanCode = this.nextChar()) != ')') {
+      sb.append((char) scanCode);
     }
 
-    SimpleDateFormat format = new SimpleDateFormat ("EEE, d MMM yyyy HH:mm:ss ZZZZZ (zzz");
+    SimpleDateFormat format = new SimpleDateFormat(
+        "EEE, d MMM yyyy HH:mm:ss ZZZZZ (zzz");
 
     // Parse the date
     try {
-      Date date = format.parse (sb.toString() );
+      Date date = format.parse(sb.toString() );
       this.messageTimestamp = date.getTime();
-//            System.out.println("Original string: " + sb);
-      System.out.println ("Parsed date and timestamp    : " + date.toString() + " = " + this.messageTimestamp);
-
+      System.out.println("Parsed date and timestamp    : " + date.toString() + 
+          " = " + this.messageTimestamp);
     } catch (ParseException pe) {
       pe.printStackTrace();
-      System.out.println ("Filename is: " + this.file.getAbsolutePath() );
+      System.out.println("Filename is: " + this.file.getAbsolutePath());
       this.messageTimestamp = Long.MAX_VALUE;
     }
-
   }
 
   private int nextChar() {
     try {
-      return (this.fr.read() );
+      return this.fr.read();
     } catch (IOException ex) {
       ex.printStackTrace();
-      return (0);
+      return 0;
     }
   }
 
   public String nextToken() throws Exception {
-    return (this.stemmer.stem (this.nextTokenUnstemmed() ) );
+    return this.stemmer.stem(this.nextTokenUnstemmed());
   }
 
   public String nextTokenUnstemmed() throws Exception {
     if (this.fr == null) {
       // We must open the the file if possible!
-      this.fr = new FileReader (this.file);
+      this.fr = new FileReader(this.file);
     }
 
     // Trim the nextToken buffer to be empty.
-    this.nextToken.delete (0, this.nextToken.length() );
+    this.nextToken.delete(0, this.nextToken.length());
 
     int c = '\0';
 
-    while (true) { // This is necessary because lame ass sun's jvm
+    while (true) { 
+      // This is necessary because sun's lame jvm
       // doesn't know how to optimize tail recursion.
       // Continue reading until end of file!
-      while ( (c = this.fr.read() ) > -1) {
+      while ((c = this.fr.read()) > -1) {
         char t = (char) c;
 
         // We build an FSM to parse this file!
@@ -159,7 +144,7 @@ public class EmailTokenizer implements ITokenizer {
          * characters in our buffer. Just keep eating
          * up the space!
          */
-        if (Character.isWhitespace (t) && this.nextToken.length() == 0) {
+        if (Character.isWhitespace(t) && this.nextToken.length() == 0) {
           continue;
         }
 
@@ -168,18 +153,18 @@ public class EmailTokenizer implements ITokenizer {
          * in our buffer, we are finished reading the current
          * token. Break out of our FSM and see if it is valid.
          */
-        if (Character.isWhitespace (t) && this.nextToken.length() > 0) {
+        if (Character.isWhitespace(t) && this.nextToken.length() > 0) {
           break;
         }
 
-        if (Character.isLetter (t) ) {
-          t = Character.toLowerCase (t);
-          this.nextToken.append (t);
+        if (Character.isLetter(t)) {
+          t = Character.toLowerCase(t);
+          this.nextToken.append(t);
           continue;
         }
 
         if (t == '-') {
-          this.nextToken.append ('-');
+          this.nextToken.append('-');
           continue;
         }
 
@@ -200,8 +185,9 @@ public class EmailTokenizer implements ITokenizer {
 
       if (this.nextToken.length() >= Tokenizer.MIN_TOKEN_LENGTH) {
         // If we have a buffer of length > Tokenizer.MIN_TOKEN_LENGTH we have valid token!
-        return (this.nextToken.toString() );
-      } else if (this.nextToken.length() > 0 && this.nextToken.length() < Tokenizer.MIN_TOKEN_LENGTH) {
+        return this.nextToken.toString();
+      } else if (this.nextToken.length() > 0 && 
+          this.nextToken.length() < Tokenizer.MIN_TOKEN_LENGTH) {
         // If we have a buffer of length >0 but < 2 we have an invalid
         // token. Ideally this would be a tail recursive call to this
         // function, but Sun's lame JVM doesn't support tail recursion
@@ -212,11 +198,10 @@ public class EmailTokenizer implements ITokenizer {
         // simply clear out the token, and keep going!
 
         // Trim the nextToken buffer to be empty.
-        this.nextToken.delete (0, this.nextToken.length() );
-
+        this.nextToken.delete(0, this.nextToken.length());
       } else {
         // We reached the end of file. Return an empty token.
-        return (new String() );
+        return new String();
       }
     }
   }

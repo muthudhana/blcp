@@ -21,10 +21,14 @@ import sparsevector.SparseVector;
 public class VectorSpaceModel extends ClusteringModel {
 
   protected ArrayList<Document> documents = null;
-
+  protected IStemmer stemmer = null;
+  protected StopList stopList = null;
+  
   /** Creates a new instance of VectorSpaceModel */
   public VectorSpaceModel (IStemmer stemmer, String stopListFileName) throws Exception {
-    super (stemmer, stopListFileName);
+    super();
+    this.stemmer = stemmer;
+    this.stopList = new StopList(this.stemmer, stopListFileName);
     this.documents = new ArrayList<Document>();
   }
 

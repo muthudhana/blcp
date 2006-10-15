@@ -10,11 +10,6 @@ public class Main {
   /** Creates a new instance of Main */
   public Main() {}
 
-  public static void main (String[] args) {
-    Getopt go = new Getopt ("test", args, "");
-    System.out.println ("Hello World!");
-  }
-
   public static void Project4 (String[] args) {
 
     if (args.length < 2) {

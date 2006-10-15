@@ -24,10 +24,10 @@ public class Document implements Serializable {
   public Document(String document, StopList stopList, IStemmer stemmer, 
       int sourceId) {
     // Tokenize using porter
-    ITokenizer tok = new EmailTokenizer (stemmer, document);
+    ITokenizer tok = new EmailTokenizer(stemmer, document);
     
     this.sourceId = sourceId;
-    this.filename = new String (document);
+    this.filename = new String(document);
     this.documentVocabulary = new Hashtable<String, Integer>();
     this.termList = null;
 
@@ -35,7 +35,7 @@ public class Document implements Serializable {
     this.timestamp = ((EmailTokenizer) tok).getTimestamp();
     /* end block */
 
-    System.out.println ("Parsing file: " + document);
+    System.out.println("Parsing file: " + document);
 
     String s = null;
     
