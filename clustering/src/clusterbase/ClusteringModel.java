@@ -23,14 +23,9 @@ abstract public class ClusteringModel implements Serializable {
   /** This is the total number of terms seen in the entire collection! */
   protected int numberOfTerms = 0;
 
-  protected IStemmer stemmer = null;
-  protected StopList stopList = null;
-
   /** Creates a new instance of ClusteringModel */
-  public ClusteringModel(IStemmer stemmer, String stopListFileName) 
+  public ClusteringModel() 
       throws Exception {
-    this.stemmer = stemmer;
-    this.stopList = new StopList (stemmer, stopListFileName);
     this.termDictionary = new Hashtable<String, Integer>();
     this.numGlobalTermOccurences = new SparseVector();
     this.numDocumentsContainingTerm = new SparseVector();
@@ -78,20 +73,6 @@ abstract public class ClusteringModel implements Serializable {
   }
 
   /**
-   * Returns a copy of the stemmer this model uses.
-   */
-  public IStemmer getStemmer() {
-    return this.stemmer;
-  }
-
-  /**
-   * Returns a copy of the StopList object used by this model.
-   */
-  public StopList getStopList() {
-    return this.stopList;
-  }
-
-  /**
    * Returns ther numerical term id of the provided term. A return
    * value of -1 means no such term exists in the dictionary.
    */
@@ -117,12 +98,10 @@ abstract public class ClusteringModel implements Serializable {
   }
 
   /**
-   * Returns the number of documents that contain a particular term. The
-   * parameter will automatically be converted to the correct case and run
-   * through the appropriate stemmer.
+   * Returns the number of documents that contain a particular term.
    */
   public int getNumberOfDocumentsContainingTerm(int termId) {
-    return (int) (this.numDocumentsContainingTerm.get (termId));
+    return (int) (this.numDocumentsContainingTerm.get(termId));
   }
 
   /**

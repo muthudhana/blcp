@@ -19,8 +19,8 @@ import sparsevector.SparseVector;
 public class PDDP extends VectorSpaceModel {
 
   /** Creates a new instance of PDDP */
-  public PDDP (IStemmer stemmer, String stopListFileName) throws Exception {
-    super (stemmer, stopListFileName);
+  public PDDP () throws Exception {
+    super();
   }
 
   public double getPartitionQuality (Cluster[] c) {
