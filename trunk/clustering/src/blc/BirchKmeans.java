@@ -23,9 +23,9 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
   private java.util.Random myRand = null;
 
   /** Creates a new instance of BirchKmeans */
-  public BirchKmeans(IStemmer stemmer, String stopListFileName)
+  public BirchKmeans()
       throws Exception {
-    super (stemmer, stopListFileName);
+    super();
     
     this.globalVectorSum = new SparseVector();
     this.globalSumOfSquaredLengths = 0.0;
