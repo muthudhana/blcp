@@ -39,8 +39,8 @@ public class BirchDocumentFactory {
     for (int i = 0; i < files.length; ++i) {
       if (files[i].isDirectory()) {
         int filesAdded = this.createSerializedDocuments(files[i].toString(),
-            sourceId, outputDirectory + File.separatorChar + files[i].getName(),
-            fileNum);
+            sourceId, outputDirectory + File.separator + 
+            files[i].getName(), fileNum);
         numDocumentsAdded += filesAdded;
         fileNum += filesAdded;
       }
@@ -51,7 +51,7 @@ public class BirchDocumentFactory {
               this.stopList, this.stemmer, sourceId);
           
           Document.serializeDocument (doc, outputDirectory + 
-              File.separatorChar + Integer.toString (fileNum) + ".p1dat");
+              File.separator + files[i].getName() + ".bp1");
           System.out.println ("Creating serialized document #" + fileNum);
           
           ++fileNum;

@@ -21,6 +21,8 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
   private PriorityQueue<DocumentTimeStruct> pq = null;
   private int[] termReductionList = null;
   private java.util.Random myRand = null;
+  
+  public BirchClusterOptions clusterOptions = null;
 
   /** Creates a new instance of BirchKmeans */
   public BirchKmeans()
@@ -36,43 +38,49 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
 
     this.myRand = new java.util.Random();
     this.myRand.setSeed(new java.util.Date().getTime());
+    
+    this.clusterOptions = new BirchClusterOptions();
   }
-
-  /***
-   * Load any and all serialized documents in any directory under the 
-   * serializedFilesPath heirarchy. These serialized files are loaded and then
-   * incorporated into this instance of BirchKmeans. This means that their 
-   * dictionaries will be merged into the global dictionary.
-   *
-   * This method generates serialized files with a .p2dat extension.
-   * This should only be called once per document in this INSTANCE of 
-   * BirchKmeans.
-   */
-  public int incorporateSerializedDocumentsPhase1 (String serializedFilesPath) {
+    
+  public int buildGlobalDictionaryFromSerializedRawDocuments(
+      String serializedFilesPath, String outputDirectory) {
     File f = new File(serializedFilesPath);
     File[] files = f.listFiles();
 
     int numDocumentsAdded = 0;
 
+    // If the location we want to store new files doesn't exist, create it
+    File output = new File(outputDirectory);
+    if (output.exists() == false) {
+      output.mkdirs();
+    }
+    
     for (int i = 0; i < files.length; ++i) {
       // If we reach a directory, recursively descend through it.
       if (files[i].isDirectory()) {
-        numDocumentsAdded += this.incorporateSerializedDocumentsPhase1(
-            files[i].getAbsolutePath());
+        numDocumentsAdded += 
+            this.buildGlobalDictionaryFromSerializedRawDocuments(
+            files[i].getAbsolutePath(), outputDirectory + File.separator + 
+            files[i].getName());
         continue; // nothing more to do on this iteration
       }
 
       if (files[i].isFile() && 
-          files[i].getAbsolutePath().endsWith(".p1dat") == true) {
+          files[i].getAbsolutePath().endsWith(".bp1") == true) {
         try {
           Document doc = Document.deserializeDocument(
               files[i].getAbsolutePath());
           
           System.out.println ("Phase 1 Incorporated document: " + 
               files[i].getAbsolutePath());
-          this.incorporateDocument(doc);
-          Document.serializeDocument(doc, files[i].getAbsolutePath() + 
-              ".p2dat");
+          
+          this.incorporateDocumentStatisticsIntoModel(doc);
+          
+          String p2FileName = outputDirectory + File.separator + 
+              files[i].getName();
+          p2FileName.replaceAll(".bp1$", ".bp2");
+          Document.serializeDocument(doc, p2FileName);
+          
           ++numDocumentsAdded;
         } catch (Exception ex) {
           ex.printStackTrace();
@@ -92,7 +100,8 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
    * in the priority queue, will be the order in which they are analyzed during 
    * actual clustering.
    */
-  public int incorporateSerializedDocumentsPhase2 (String serializedFilesPath) {
+  public int useGlobalDictionaryAndBuildNormalizedVectors(
+      String serializedFilesPath, String outputDirectory) {
     File f = new File(serializedFilesPath);
     File[] files = f.listFiles();
 
@@ -101,32 +110,33 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
     for (int i = 0; i < files.length; ++i) {
       // If we reach a directory, recursively descend through it.
       if (files[i].isDirectory()) {
-        numDocumentsAdded += this.incorporateSerializedDocumentsPhase2(
-            files[i].getAbsolutePath());
+        numDocumentsAdded += this.useGlobalDictionaryAndBuildNormalizedVectors(
+            files[i].getAbsolutePath(), outputDirectory + File.pathSeparator + 
+            files[i].getName());
         continue; // nothing more to do on this iteration
       }
 
       if (files[i].isFile() &&
-          files[i].getAbsolutePath().endsWith (".p2dat") == true) {
+          files[i].getAbsolutePath().endsWith (".bp2") == true) {
         File d = files[i];
-
         System.out.println ("Phase 2 Incorporated and loaded: " + 
-            d.getAbsolutePath() );
+            d.getAbsolutePath());
 
         try {
           Document doc = Document.deserializeDocument(d.getAbsolutePath());
 
           // Build queue of messages sorted by time!
-          pq.add (new DocumentTimeStruct (files[i].getAbsolutePath(), 
+          pq.add(new DocumentTimeStruct(files[i].getAbsolutePath(), 
               doc.getTimestamp()));
 
           SparseVector sv = this.getNormalizedDocumentVector(doc);
 
           this.globalVectorSum.add(sv);
           this.globalSumOfSquaredLengths += sv.lengthSquared();
-
-          this.numNonZeroEntries += sv.getPopCount();
+          this.numNonZeroEntries += this.globalVectorSum.getPopCount();
+          
           ++numDocumentsAdded;
+       
         } catch (Exception ex) {
           ex.printStackTrace();
           System.out.println ("Second half of incorporating document!");
@@ -170,10 +180,10 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
    * provided. Calling it more than once should have no effect since 
    * doc.getFilename() is stored and if it exists, this function aborts.
    */
-  private boolean incorporateDocument(Document doc) {
+  private boolean incorporateDocumentStatisticsIntoModel(Document doc) {
     doc.setModel(this);
 
-    if (this.documentNames.get(doc.getFilename()) != null) {
+    if (isDocumentIncorporated(doc)) {
       return false;
     }
 
@@ -190,7 +200,6 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
     }
 
     ++this.numberOfDocuments;
-
     return true;
   }
 
@@ -199,7 +208,7 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
    * calculateBirchDataFromSerializedFiles was called.  It returns false 
    * otherwise.
    */
-  private boolean isDocumentIncorporated (Document doc) {
+  private boolean isDocumentIncorporated(Document doc) {
     if (this.documentNames.get(doc.getFilename()) != null) {
       return true;
     } else {
@@ -225,16 +234,16 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
     System.out.println ("upper = " + upperQualityBound);
     
     // reseed in case we are in a serialized object.
-    this.myRand.setSeed ( (new java.util.Date() ).getTime() ); 
+    this.myRand.setSeed((new java.util.Date()).getTime()); 
 
-    ArrayList<DocumentTimeStruct> al = new ArrayList<DocumentTimeStruct> (pq);
+    ArrayList<DocumentTimeStruct> al = new ArrayList<DocumentTimeStruct>(pq);
     System.out.println ("Al size " + al.size());
     
     while (al.size() > 0) {
-      int randIndex = this.myRand.nextInt(al.size() );
+      int randIndex = this.myRand.nextInt(al.size());
       Document doc = null;
       try {
-        doc = Document.deserializeDocument (al.get (randIndex).getFilename() );
+        doc = Document.deserializeDocument(al.get (randIndex).getFilename());
         al.remove (randIndex); // remove this document from the arraylist.
       } catch (Exception ex) {
         ex.printStackTrace();
@@ -365,9 +374,9 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
   /**
    * This method will ensure that this BirchKmeans object/instance will only
    * process the top N terms with the highest variance. It MUST be called AFTER
-   * incorporateSerializedDocumentsPhase1 but BEFORE 
-   * incorporateSerializedDocumentsPhase2.  Any other invokation WILL LEAD to
-   * undefined behavior and highly corrupted results!
+   * buildGlobalDictionaryFromSerializedRawDocuments but BEFORE 
+   * useGlobalDictionaryAndBuildNormalizedVectors.  Any other invokation WILL
+   * LEAD to undefined behavior and highly corrupted results!
    */
   public void useNHighVarianceTerms(int n) {
     this.termReductionList = new int[n];

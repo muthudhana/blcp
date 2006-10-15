@@ -166,7 +166,7 @@ public class Document implements Serializable {
       double lFreq = this.terms.get(termList[i]);
       if (lFreq != 0D) {
         double globalWeightFactor = v.getGlobalTermWeight(termList[i]);
-        documentVector.set (i, lFreq * globalWeightFactor);
+        documentVector.set(i, lFreq * globalWeightFactor);
       }
     }
 
