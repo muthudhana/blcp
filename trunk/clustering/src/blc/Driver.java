@@ -18,6 +18,7 @@ public class Driver {
 
   public DriverAction driverAction = null;
   public String projectPath = null;
+  public String unparsedFiles = null;
   
   public Driver() {
     
@@ -78,7 +79,7 @@ public class Driver {
     String arg;
     int c = -1;
     
-    Getopt opts = new Getopt("blcp", args, "N:");
+    Getopt opts = new Getopt("blcp", args, "N:p:P:");
     
     for(int i = 0; i < args.length; ++i)
       System.out.println(args[i]);
@@ -88,20 +89,21 @@ public class Driver {
         case 'N': // Make a new project directory
            if (driver.driverAction == DriverAction.NOTHING) {
              driver.driverAction = DriverAction.MAKE_NEW_PROJECT;
-           } else {
-             break;
            }
-           if (driver.initializeNewProject(opts.getOptarg())) {
-             driver.projectPath = opts.getOptarg();
-           }
-           return;
           break;
-        case 'P': // Parse corpus files
+        case 'P': // Location of project
+          if (opts.getOptarg().length() > 0) {
+            driver.projectPath = opts.getOptarg(); 
+          } else {
+            System.out.println("Project location not valid!");
+            return;
+          }
+          break;
+        case 'p': // Parse corpus files
             if (driver.driverAction == DriverAction.NOTHING) {
               driver.driverAction = DriverAction.PARSE_FILES;
-            } else {
-              break;
             }
+            driver.unparsedFiles = opts.getOptarg();
           break;
         case 'x':
           arg = opts.getOptarg();
