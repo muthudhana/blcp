@@ -3,7 +3,21 @@ package blc;
 import gnu.getopt.*;
 import java.io.*;
 
+enum DriverAction {
+  NOTHING,
+  MAKE_NEW_PROJECT,
+  PARSE_FILES,
+  ADD_DOCUMENTS_TO_MODEL,
+  SET_TERM_REDUCTION,
+  FINALIZE_CORPUS,
+  SET_CLUSTER_OPTIONS,
+  CLUSTER
+} 
+
 public class Driver {
+
+  public DriverAction driverAction = null;
+  public String projectPath = null;
   
   public Driver() {
     
@@ -32,24 +46,38 @@ public class Driver {
   private boolean clusterDocumentsInModel() {
     
     return true;
+  }  
+
+  public boolean initializeNewProject(String arg) {
+    File f = new File(arg);
+    if (f.mkdirs() == false) {
+      System.out.println("Fatal Error creating new project directory!");
+      return false;
+    }
+    f = new File(arg + File.separator + "rawDocs" + File.separator);
+    if (f.mkdirs() == false) {
+      System.out.println("Fatal Error making new project rawDocs");
+      return false;
+    }
+    f = new File(arg + File.separator + "corpus" + File.separator);
+    if (f.mkdirs() == false) {
+      System.out.println("Fatal Error making new project corpus");
+      return false;
+    }
+    f = new File(arg + File.separator + "models" + File.separator);
+    if (f.mkdirs() == false) {
+      System.out.println("Fatal Error making new project models");
+      return false;
+    }
+    return true;
   }
   
-  enum DriverAction {
-    MAKE_NEW_PROJECT,
-    PARSE_FILES,
-    ADD_DOCUMENTS_TO_MODEL,
-    SET_TERM_REDUCTION,
-    FINALIZE_CORPUS,
-    SET_CLUSTER_OPTIONS,
-    CLUSTER
-  }
-  
-  public static void main(String[] args) { 
+  public static void main(String[] args) {
+    Driver driver = new Driver();
+    
     String arg;
     int c = -1;
-    boolean actionSelected = false;
-    File f = null;
-
+    
     Getopt opts = new Getopt("blcp", args, "N:");
     
     for(int i = 0; i < args.length; ++i)
@@ -58,46 +86,23 @@ public class Driver {
     while ((c = opts.getopt()) != -1) {
       switch (c) {
         case 'N': // Make a new project directory
-            if (actionSelected == true) {
-              System.exit(-1);
-            } else {
-              actionSelected = true;
-            }
-            arg = opts.getOptarg();
-            f = new File(arg);
-            if (f.mkdirs() == false) {
-              System.out.println("Fatal Error creating new project directory!");
-              return;
-            }
-            f = new File(arg + File.separator + "rawDocs" + File.separator);
-            if (f.mkdirs() == false) {
-              System.out.println("Fatal Error making new project rawDocs");
-              return; 
-            }
-            f = new File(arg + File.separator + "corpus" + File.separator);
-            if (f.mkdirs() == false) {
-              System.out.println("Fatal Error making new project corpus");
-              return;
-            }
-            f = new File(arg + File.separator + "models" + File.separator);
-            if (f.mkdirs() == false) {
-              System.out.println("Fatal Error making new project models");
-              return;
-            }
+           if (driver.driverAction == DriverAction.NOTHING) {
+             driver.driverAction = DriverAction.MAKE_NEW_PROJECT;
+           } else {
+             break;
+           }
+           if (driver.initializeNewProject(opts.getOptarg())) {
+             driver.projectPath = opts.getOptarg();
+           }
+           return;
           break;
         case 'P': // Parse corpus files
-            if (actionSelected == true) {
-              System.exit(-1);
+            if (driver.driverAction == DriverAction.NOTHING) {
+              driver.driverAction = DriverAction.PARSE_FILES;
             } else {
-              actionSelected = true;
-            }
-            arg = opts.getOptarg();
-            f = new File(arg);
-            if (f.mkdirs()) {
-              System.out.println("New project directory created!");
+              break;
             }
           break;
-          
         case 'x':
           arg = opts.getOptarg();
           System.out.println("Switch '" + arg + "' enabled.");
