@@ -28,7 +28,7 @@ public class BirchClusterOptions implements Serializable {
   
   private ClusteringApproach clusteringApproach = 
       ClusteringApproach.GREEDY_ALLOCATION;
-  private int maxTrialsForReasonableEffort = -1;
+  private double maxTrialsForReasonableEffort = 0.0;
   
   private double capacityFraction = -1;
   private int maxClusterSize = -1;
@@ -91,11 +91,11 @@ public class BirchClusterOptions implements Serializable {
     return this.clusteringApproach;
   }
   
-  public int getReasonableEffortValue() {
+  public double getReasonableEffortValue() {
     return this.maxTrialsForReasonableEffort;
   }
   
-  public ClusteringApproach setReasonableEffortValue(int value) {
+  public ClusteringApproach setReasonableEffortValue(double value) {
     this.maxTrialsForReasonableEffort = value;
     return this.setClusteringApproach(clusteringApproach.REASONABLE_EFFORT);
   }

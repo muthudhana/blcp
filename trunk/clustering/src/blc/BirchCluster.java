@@ -114,6 +114,15 @@ public class BirchCluster {
     oos.close();
   }
 
+  public String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.append("Birch Cluster Statistics\n");
+    sb.append("Number of Documents: " + this.getNumberOfDocuments() + "\n");
+    sb.append("Cluster Quality:     " + this.getQuality() + "\n");
+    sb.append("\n");
+    return sb.toString();
+  }
+  
   public static BirchCluster deserializeBirchKmeans(String filename) 
       throws Exception {
     FileInputStream fis = new FileInputStream(filename);
