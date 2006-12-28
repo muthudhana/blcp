@@ -246,13 +246,14 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
    * Calculating the upper quality bound using the cluster density factor is
    * extremely resource intensive. In an effort to deal with this,
    * clusterDocuments() is a light wrapper around the function
-   * clusterDocumentsInternal(). clusterDocumentsInternal takes the upper
-   * quality bound as a parameter, and calls itself recursively. This should
-   * improve performance when clustering, as the value is just passed around.
+   * clusterDocumentsInternal(). 
    */
-  public int clusterDocuments(int maxDocumentsPerCluster,
-      double clusterDensityFactor) {
-    double upperQualityBound = clusterDensityFactor *
+  public int clusterDocuments() {
+    if (this.clusterOptions == null) {
+      return -1;
+    }
+      
+    double upperQualityBound = this.clusterOptions.getCapacityFraction() *
         (this.getGlobalQuality() / this.getNumberOfDocuments());
     
     System.out.println("Global quality = " + this.getGlobalQuality() );
@@ -519,5 +520,11 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
       quality += this.clusters.get(i).getQuality();
     }
     return (quality);
+  }
+  
+  public String toString() {
+      StringBuffer sb = new StringBuffer("BirchKmeans Object Info\n");
+      sb.append("# of documents = " + this.getNumberOfDocuments() + "\n");
+      a
   }
 }
