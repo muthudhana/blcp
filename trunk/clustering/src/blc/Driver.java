@@ -5,20 +5,11 @@ import java.io.*;
 
 enum DriverAction {
   NOTHING,
-  MAKE_NEW_PROJECT,
-  PARSE_FILES,
-  ADD_DOCUMENTS_TO_MODEL,
-  SET_TERM_REDUCTION,
-  FINALIZE_CORPUS,
-  SET_CLUSTER_OPTIONS,
-  CLUSTER
 } 
 
 public class Driver {
 
   public DriverAction driverAction = null;
-  public String projectPath = null;
-  public String unparsedFiles = null;
   
   public Driver() {
     
@@ -29,49 +20,14 @@ public class Driver {
     return true;
   }
   
-  private boolean bindDocumentToModel() {
- 
-    return true;
-  }
-  
-  private boolean createNewModel() {
-    
-    return true;
-  }
-  
-  private boolean setModelOptions() {
-    
-    return true;
-  }
-  
-  private boolean clusterDocumentsInModel() {
-    
-    return true;
-  }  
-
-  public boolean initializeNewProject(String arg) {
-    File f = new File(arg);
-    if (f.mkdirs() == false) {
-      System.out.println("Fatal Error creating new project directory!");
-      return false;
-    }
-    f = new File(arg + File.separator + "rawDocs" + File.separator);
-    if (f.mkdirs() == false) {
-      System.out.println("Fatal Error making new project rawDocs");
-      return false;
-    }
-    f = new File(arg + File.separator + "corpus" + File.separator);
-    if (f.mkdirs() == false) {
-      System.out.println("Fatal Error making new project corpus");
-      return false;
-    }
-    f = new File(arg + File.separator + "models" + File.separator);
-    if (f.mkdirs() == false) {
-      System.out.println("Fatal Error making new project models");
-      return false;
-    }
-    return true;
-  }
+  /**
+   * We have 4 possible options with our new driver
+   * 1) Read in a serialzied BirchClusterObject and print it out.
+   * 2) Create a new BirchClusterObject, configure it, and serialize it out.
+   * 3) Given a directory of raw files: parse, serialize, and write them out.
+   * 4) Given serialized documents from #3 and a BirchClusterOptions object from
+   *    #2, cluster the documents using a provided directory as scratch space.
+   */
   
   public static void main(String[] args) {
     Driver driver = new Driver();
