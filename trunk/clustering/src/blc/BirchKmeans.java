@@ -525,6 +525,10 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
   public String toString() {
       StringBuffer sb = new StringBuffer("BirchKmeans Object Info\n");
       sb.append("# of documents = " + this.getNumberOfDocuments() + "\n");
-      a
+      sb.append("# of distinct terms = " + this.getNumberOfDistinctTerms() + 
+          "\n");
+      sb.append("# of total terms = " + this.getNumberOfTerms() + "\n");
+      sb.append(this.clusterOptions);
+      return sb.toString();
   }
 }

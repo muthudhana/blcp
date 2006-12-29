@@ -4,33 +4,36 @@ import java.util.*;
 import java.io.*;
 
 enum ClusteringOrder implements Serializable {
+    NOTHING,
     TIMESTAMP_FORWARD,
     TIMESTAMP_REVERSE,
     RANDOM
 }
 
 enum TermReductionApproach implements Serializable {
+    NOTHING,
     USE_TERM_REDUCTION,
     NO_TERM_REDUCTION
 }
 
 enum ClusteringApproach implements Serializable {
+    NOTHING,
     GREEDY_ALLOCATION,
     BEST_FIT_ALLOCATION,
     REASONABLE_EFFORT
 }
 
 public class BirchClusterOptions implements Serializable {
-  private ClusteringOrder clusteringOrder = ClusteringOrder.TIMESTAMP_FORWARD;
+  private ClusteringOrder clusteringOrder = ClusteringOrder.NOTHING;
   private TermReductionApproach termReductionApproach = 
-      TermReductionApproach.NO_TERM_REDUCTION;
+      TermReductionApproach.NOTHING;
   private int termLimit = -1;
   
   private ClusteringApproach clusteringApproach = 
-      ClusteringApproach.GREEDY_ALLOCATION;
-  private double maxTrialsForReasonableEffort = 0.0;
+      ClusteringApproach.NOTHING;
+  private double maxTrialsForReasonableEffort = -1.0;
   
-  private double capacityFraction = -1;
+  private double capacityFraction = -1.0;
   private int maxClusterSize = -1;
   
   private Hashtable<String, String> miscStringSettings = null;
@@ -116,27 +119,83 @@ public class BirchClusterOptions implements Serializable {
     this.maxClusterSize = maxSize;
   }
   
-  public boolean verify() {
-    if (termReductionApproach == TermReductionApproach.USE_TERM_REDUCTION) {
-      if (termLimit < 0) {
+  public boolean verify() { 
+    // Verify a clusteringApproach has been specified.
+    if (this.clusteringApproach == ClusteringApproach.NOTHING) {
+      return false;
+    } else if (this.clusteringApproach == ClusteringApproach.REASONABLE_EFFORT) 
+        {
+      // If we are using a resonable effort approach, make sure the percentage
+      // of trials to conduct is specified.
+      if (this.maxTrialsForReasonableEffort < 0.0) {
         return false;
       }
     }
     
-    if (clusteringApproach == ClusteringApproach.REASONABLE_EFFORT) {
-      if (maxTrialsForReasonableEffort < 0) {
+    // Make sure a clusteringOrder is specified.
+    if (this.clusteringOrder == ClusteringOrder.NOTHING) {
+      return false;
+    }
+    
+    // Make sure term reduction settings are specified.
+    if (this.termReductionApproach == TermReductionApproach.NOTHING) {
+      return false;
+    } else if (this.termReductionApproach == 
+        TermReductionApproach.USE_TERM_REDUCTION) {
+      // If we are using term reduction, then make sure we have a good limit.
+      if (this.termLimit <= 0) {
         return false;
       }
     }
     
-    if (capacityFraction < 0) {
+    // Make sure the two most important settings are valid!
+    if (this.capacityFraction > 1.0 || this.capacityFraction <= 0.0 || 
+        this.maxClusterSize <= 0) {
       return false;
     }
     
-    if (maxClusterSize < 0) {
-      return false;
-    } 
-    
+    // All settings in this object appear valid, return true.
     return true;
+  }
+  
+  public static void serializeBirchClusterOptions(BirchClusterOptions bco,
+      String outputFileName) throws Exception {
+    if (bco.verify() == false) {
+      throw new Exception("Specified BirchClusterOptions object is invalid!");
+    }
+    
+    FileOutputStream fos = new FileOutputStream(outputFileName);
+    ObjectOutputStream oos = new ObjectOutputStream(fos);
+    oos.writeObject(bco);
+    oos.flush();
+    oos.close();
+  }
+  
+  public static BirchClusterOptions deserializeBirchClusterOptions(
+      String filename) throws Exception {
+    FileInputStream fis = new FileInputStream(filename);
+    ObjectInputStream ois = new ObjectInputStream(fis);
+    BirchClusterOptions bco = (BirchClusterOptions) ois.readObject();
+    return bco;
+  }
+  
+  public String toString() {
+    StringBuffer sb = new StringBuffer();
+    sb.append("Birch Cluster Options\n");
+    sb.append("Clustering Order: " + this.clusteringOrder + "\n");
+    sb.append("Term Reduction Approach: " + this.termReductionApproach + "\n");
+    if (this.termReductionApproach == TermReductionApproach.USE_TERM_REDUCTION) 
+        {
+      sb.append("  Terms reduced to: " + this.termLimit + " terms.\n");
+    }
+    sb.append("Clustering Approach: " + this.clusteringApproach + "\n");
+    if (this.clusteringApproach == ClusteringApproach.REASONABLE_EFFORT) {
+      sb.append("  Reasonable effort percentage: " + 
+          this.maxTrialsForReasonableEffort + "\n");
+    }
+    sb.append("Capacity Fraction: " + this.capacityFraction + "\n");
+    sb.append("Max Cluster Size: " + this.maxClusterSize + "\n");
+    
+    
   }
 }
