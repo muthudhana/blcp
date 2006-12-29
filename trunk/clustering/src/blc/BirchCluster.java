@@ -119,7 +119,6 @@ public class BirchCluster {
     sb.append("Birch Cluster Statistics\n");
     sb.append("Number of Documents: " + this.getNumberOfDocuments() + "\n");
     sb.append("Cluster Quality:     " + this.getQuality() + "\n");
-    sb.append("\n");
     return sb.toString();
   }
   
