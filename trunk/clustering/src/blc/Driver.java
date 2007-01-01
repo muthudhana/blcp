@@ -49,7 +49,7 @@ public class Driver {
     String arg;
     int c = -1;
     
-    Getopt opts = new Getopt("blcp", args, "BOCi:o:s:b:");
+    Getopt opts = new Getopt("blcp", args, "BOCi:o:s:b:r:l:a:t:c:m:");
     
     for(int i = 0; i < args.length; ++i)
       System.out.println(args[i]);
