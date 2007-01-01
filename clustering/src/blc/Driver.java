@@ -11,16 +11,21 @@ enum DriverAction {
   SET_OPTIONS,
   SHOW_OPTIONS,
   CLUSTER
-} 
+}
 
 public class Driver {
-
+  
   public DriverAction driverAction = null;
+  public String input = null;
+  public String output = null;
+  public String clusterOptionsPath = null;
+  public String bkmPath = null;
+  public BirchClusterOptions clusterOptions = new BirchClusterOptions();
   
   public Driver() {
     
   }
-
+  
   private int parseAndSerializeDocuments(String in, String out,
       StopList stopList, IStemmer stemmer) {
     BirchDocumentFactory bdf = new BirchDocumentFactory(stopList, stemmer);
@@ -44,7 +49,7 @@ public class Driver {
     String arg;
     int c = -1;
     
-    Getopt opts = new Getopt("blcp", args, "BOCi:o:s:");
+    Getopt opts = new Getopt("blcp", args, "BOCi:o:s:b:");
     
     for(int i = 0; i < args.length; ++i)
       System.out.println(args[i]);
@@ -52,7 +57,7 @@ public class Driver {
     while ((c = opts.getopt()) != -1) {
       switch (c) {
         case 'B': // Make a new project directory
-           driver.driverAction = DriverAction.BUILD_DOCUMENTS;
+          driver.driverAction = DriverAction.BUILD_DOCUMENTS;
           break;
         case 'O':
           driver.driverAction = DriverAction.SET_OPTIONS;
@@ -63,28 +68,83 @@ public class Driver {
         case 'C':
           driver.driverAction = DriverAction.CLUSTER;
           break;
-          
-//        case 'P': // Location of project
-//          if (opts.getOptarg().length() > 0) {
-//            driver.projectPath = opts.getOptarg(); 
-//          } else {
-//            System.out.println("Project location not valid!");
-//            return;
-//          }
-//          break;
-//        case 'p': // Parse corpus files
-//            if (driver.driverAction == DriverAction.NOTHING) {
-//              driver.driverAction = DriverAction.PARSE_FILES;
-//            }
-//            driver.unparsedFiles = opts.getOptarg();
-//          break;
-//        case 'x':
-//          arg = opts.getOptarg();
-//          System.out.println("Switch '" + arg + "' enabled.");
-//          if (arg != null) {
-//            System.out.println("  Parameter = " + arg);
-//          }
-//          break;
+        case 'i':
+          if (opts.getOptarg().length() > 0) {
+            driver.input = opts.getOptarg();
+          }
+          break;
+        case 'o':
+          if (opts.getOptarg().length() > 0) {
+            driver.output = opts.getOptarg();
+          }
+          break;
+        case 's':
+          if (opts.getOptarg().length() > 0) {
+            driver.clusterOptionsPath = opts.getOptarg();
+          }
+          break;
+        case 'b':
+          if (opts.getOptarg().length() > 0) {
+            driver.bkmPath = opts.getOptarg();
+          }
+        case 'r':
+          if (opts.getOptarg().length() > 0) {
+            String a = opts.getOptarg();
+            if (a.equalsIgnoreCase("TIMESTAMP_FORWARD")) {
+              driver.clusterOptions.setClusteringOrder(
+                  ClusteringOrder.TIMESTAMP_FORWARD);
+            } else if (a.equalsIgnoreCase("TIMESTAMP_REVERSE")) {
+              driver.clusterOptions.setClusteringOrder(
+                  ClusteringOrder.TIMESTAMP_REVERSE);
+            } else if (a.equalsIgnoreCase("RANDOM")) {
+              driver.clusterOptions.setClusteringOrder(ClusteringOrder.RANDOM);
+            }
+          }
+          break;
+        case 'l':
+          int termLimit = Integer.parseInt(opts.getOptarg());
+          if (termLimit > 0) {
+            driver.clusterOptions.setMaxTermLimit(termLimit);
+            driver.clusterOptions.setTermReductionApproach(
+                TermReductionApproach.USE_TERM_REDUCTION);
+          } else {
+            driver.clusterOptions.setTermReductionApproach(
+                TermReductionApproach.NO_TERM_REDUCTION);
+          }
+          break;
+        case 'a':
+          String a = opts.getOptarg();
+          if (a.equalsIgnoreCase("GREEDY_ALLOCATION")) {
+            driver.clusterOptions.setClusteringApproach(
+                ClusteringApproach.GREEDY_ALLOCATION);
+          } else if (a.equalsIgnoreCase("BEST_FIT_ALLOCATION")) {
+            driver.clusterOptions.setClusteringApproach(
+                ClusteringApproach.BEST_FIT_ALLOCATION);
+          } else if (a.equalsIgnoreCase("REASONABLE_EFFORT")) {
+            driver.clusterOptions.setClusteringApproach(
+                ClusteringApproach.REASONABLE_EFFORT);
+          }
+          break;
+        case 't':
+          double reasonableEffort = Double.parseDouble(opts.getOptarg());
+          if (reasonableEffort > 0.0 && reasonableEffort <= 1.0) {
+            driver.clusterOptions.setReasonableEffortValue(reasonableEffort);
+            driver.clusterOptions.setClusteringApproach(
+                ClusteringApproach.REASONABLE_EFFORT);
+          }
+          break;
+        case 'c':
+          double capacityFraction = Double.parseDouble(opts.getOptarg());
+          if (capacityFraction > 0.0 && capacityFraction <= 1.0) {
+            driver.clusterOptions.setCapacityFraction(capacityFraction);
+          }
+          break;
+        case 'm':
+          int maxClusterSize = Integer.parseInt(opts.getOptarg());
+          if (maxClusterSize > 0) {
+            driver.clusterOptions.setMaxClusterSize(maxClusterSize);
+          }
+          break;
       }
     }
     
@@ -98,7 +158,7 @@ public class Driver {
       case SHOW_OPTIONS:
         break;
       case CLUSTER:
-        break;        
+        break;
     }
   }
 }
