@@ -11,7 +11,6 @@ enum ClusteringOrder implements Serializable {
 }
 
 enum TermReductionApproach implements Serializable {
-    NOTHING,
     USE_TERM_REDUCTION,
     NO_TERM_REDUCTION
 }
@@ -26,7 +25,7 @@ enum ClusteringApproach implements Serializable {
 public class BirchClusterOptions implements Serializable {
   private ClusteringOrder clusteringOrder = ClusteringOrder.NOTHING;
   private TermReductionApproach termReductionApproach = 
-      TermReductionApproach.NOTHING;
+      TermReductionApproach.NO_TERM_REDUCTION;
   private int termLimit = -1;
   
   private ClusteringApproach clusteringApproach = 
@@ -75,10 +74,20 @@ public class BirchClusterOptions implements Serializable {
     return this.termReductionApproach;
   }
   
+  /**
+   * Setting this value <= 0 will disable term reduction completely.
+   * Setting it to a value > 0 will enable term reduction.
+   */
   public TermReductionApproach setMaxTermLimit(int termLimit) {
     this.termLimit = termLimit;
-    return this.setTermReductionApproach(
-        TermReductionApproach.USE_TERM_REDUCTION);
+    if (termLimit <= 0) {
+      return this.setTermReductionApproach(
+          TermReductionApproach.NO_TERM_REDUCTION);
+    } else { 
+      return this.setTermReductionApproach(
+          TermReductionApproach.USE_TERM_REDUCTION);
+    }
+        
   }
   
   public int getMaxTermLimit() {
@@ -127,7 +136,8 @@ public class BirchClusterOptions implements Serializable {
         {
       // If we are using a resonable effort approach, make sure the percentage
       // of trials to conduct is specified.
-      if (this.maxTrialsForReasonableEffort < 0.0) {
+      if (this.maxTrialsForReasonableEffort < 0.0 || 
+          this.maxTrialsForReasonableEffort > 1) {
         return false;
       }
     }
@@ -138,9 +148,7 @@ public class BirchClusterOptions implements Serializable {
     }
     
     // Make sure term reduction settings are specified.
-    if (this.termReductionApproach == TermReductionApproach.NOTHING) {
-      return false;
-    } else if (this.termReductionApproach == 
+    if (this.termReductionApproach == 
         TermReductionApproach.USE_TERM_REDUCTION) {
       // If we are using term reduction, then make sure we have a good limit.
       if (this.termLimit <= 0) {
