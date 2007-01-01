@@ -23,13 +23,24 @@ public class Driver {
   public BirchClusterOptions clusterOptions = new BirchClusterOptions();
   
   public Driver() {
-    
   }
   
   private int parseAndSerializeDocuments(String in, String out,
       StopList stopList, IStemmer stemmer) {
     BirchDocumentFactory bdf = new BirchDocumentFactory(stopList, stemmer);
     return bdf.createSerializedDocuments(in, 0, out, 1);
+  }
+  
+  private void createClusterOptions(String outputPath) {
+    System.out.println("Serializing Cluster Options!");
+    System.out.println(this.clusterOptions);
+    try {
+      BirchClusterOptions.serializeBirchClusterOptions(
+          this.clusterOptions, outputPath);
+    } catch (Exception e){
+      System.out.println(e);
+      System.exit(-1);
+    }
   }
   
   /**
