@@ -2,9 +2,15 @@ package blc;
 
 import gnu.getopt.*;
 import java.io.*;
+import clusterbase.IStemmer;
+import clusterbase.StopList;
 
 enum DriverAction {
   NOTHING,
+  BUILD_DOCUMENTS,
+  SET_OPTIONS,
+  SHOW_OPTIONS,
+  CLUSTER
 } 
 
 public class Driver {
@@ -15,9 +21,10 @@ public class Driver {
     
   }
 
-  private boolean parseAndSerializeDocuments() {
-    
-    return true;
+  private int parseAndSerializeDocuments(String in, String out,
+      StopList stopList, IStemmer stemmer) {
+    BirchDocumentFactory bdf = new BirchDocumentFactory(stopList, stemmer);
+    return bdf.createSerializedDocuments(in, 0, out, 1);
   }
   
   /**
@@ -32,43 +39,66 @@ public class Driver {
   public static void main(String[] args) {
     Driver driver = new Driver();
     
+    driver.driverAction = DriverAction.NOTHING;
+    
     String arg;
     int c = -1;
     
-    Getopt opts = new Getopt("blcp", args, "N:p:P:");
+    Getopt opts = new Getopt("blcp", args, "BOCi:o:s:");
     
     for(int i = 0; i < args.length; ++i)
       System.out.println(args[i]);
     
     while ((c = opts.getopt()) != -1) {
       switch (c) {
-        case 'N': // Make a new project directory
-           if (driver.driverAction == DriverAction.NOTHING) {
-             driver.driverAction = DriverAction.MAKE_NEW_PROJECT;
-           }
+        case 'B': // Make a new project directory
+           driver.driverAction = DriverAction.BUILD_DOCUMENTS;
           break;
-        case 'P': // Location of project
-          if (opts.getOptarg().length() > 0) {
-            driver.projectPath = opts.getOptarg(); 
-          } else {
-            System.out.println("Project location not valid!");
-            return;
-          }
+        case 'O':
+          driver.driverAction = DriverAction.SET_OPTIONS;
           break;
-        case 'p': // Parse corpus files
-            if (driver.driverAction == DriverAction.NOTHING) {
-              driver.driverAction = DriverAction.PARSE_FILES;
-            }
-            driver.unparsedFiles = opts.getOptarg();
+        case 'P':
+          driver.driverAction = DriverAction.SHOW_OPTIONS;
           break;
-        case 'x':
-          arg = opts.getOptarg();
-          System.out.println("Switch '" + arg + "' enabled.");
-          if (arg != null) {
-            System.out.println("  Parameter = " + arg);
-          }
+        case 'C':
+          driver.driverAction = DriverAction.CLUSTER;
           break;
+          
+//        case 'P': // Location of project
+//          if (opts.getOptarg().length() > 0) {
+//            driver.projectPath = opts.getOptarg(); 
+//          } else {
+//            System.out.println("Project location not valid!");
+//            return;
+//          }
+//          break;
+//        case 'p': // Parse corpus files
+//            if (driver.driverAction == DriverAction.NOTHING) {
+//              driver.driverAction = DriverAction.PARSE_FILES;
+//            }
+//            driver.unparsedFiles = opts.getOptarg();
+//          break;
+//        case 'x':
+//          arg = opts.getOptarg();
+//          System.out.println("Switch '" + arg + "' enabled.");
+//          if (arg != null) {
+//            System.out.println("  Parameter = " + arg);
+//          }
+//          break;
       }
+    }
+    
+    switch (driver.driverAction) {
+      case NOTHING:
+        break;
+      case BUILD_DOCUMENTS:
+        break;
+      case SET_OPTIONS:
+        break;
+      case SHOW_OPTIONS:
+        break;
+      case CLUSTER:
+        break;        
     }
   }
 }
