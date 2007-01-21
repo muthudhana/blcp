@@ -2,11 +2,22 @@ package blc;
 
 import gnu.getopt.*;
 import java.io.*;
-import clusterbase.IStemmer;
-import clusterbase.StopList;
+import clusterbase.*;
+
+/**
+Basic Usage Notes: 
+
+java -jar "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\dist\Clustering.jar" -O -s "c:\go.bco" -r TIMESTAMP_FORWARD -l 2500 -a GREEDY_ALLOCATION -c 0.8 -m 100
+java -jar "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\dist\Clustering.jar" -P -s "c:\go.bco"
+java -jar "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\dist\Clustering.jar" -B -o c:\corpus\serialized\ -i c:\corpus\src -x "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\stopList.txt"
+java -jar "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\dist\Clustering.jar" -D -i c:\corpus\serialized\ -o c:\corpus\serialized\ -b c:\corpus\bkm.dat 
+java -jar "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\dist\Clustering.jar" -C -i c:\corpus\serialized\ -o c:\corpus\serialized\ -s c:\go.bco -b c:\corpus\bkm.dat
+
+*/
 
 enum DriverAction {
   NOTHING,
+  BUILD_DICTIONARY,
   BUILD_DOCUMENTS,
   SET_OPTIONS,
   SHOW_OPTIONS,
@@ -21,22 +32,23 @@ public class Driver {
   public String clusterOptionsPath = null;
   public String bkmPath = null;
   public BirchClusterOptions clusterOptions = new BirchClusterOptions();
+  public String stopListFileName = null;
   
   public Driver() {
   }
   
-  private int parseAndSerializeDocuments(String in, String out,
-      StopList stopList, IStemmer stemmer) {
+  public int parseAndSerializeDocuments(String in, String out,
+    StopList stopList, IStemmer stemmer) {
     BirchDocumentFactory bdf = new BirchDocumentFactory(stopList, stemmer);
-    return bdf.createSerializedDocuments(in, 0, out, 1);
+    return bdf.createSerializedDocuments(in, out, 1);
   }
   
-  private void createClusterOptions(String outputPath) {
+  public void createClusterOptions(String outputPath) {
     System.out.println("Serializing Cluster Options!");
     System.out.println(this.clusterOptions);
     try {
       BirchClusterOptions.serializeBirchClusterOptions(
-          this.clusterOptions, outputPath);
+        this.clusterOptions, outputPath);
     } catch (Exception e){
       System.out.println(e);
       System.exit(-1);
@@ -60,10 +72,7 @@ public class Driver {
     String arg;
     int c = -1;
     
-    Getopt opts = new Getopt("blcp", args, "BOCi:o:s:b:r:l:a:t:c:m:");
-    
-    for(int i = 0; i < args.length; ++i)
-      System.out.println(args[i]);
+    Getopt opts = new Getopt("blcp", args, "BOCPDi:o:s:b:r:l:a:t:c:m:x:");
     
     while ((c = opts.getopt()) != -1) {
       switch (c) {
@@ -78,6 +87,9 @@ public class Driver {
           break;
         case 'C':
           driver.driverAction = DriverAction.CLUSTER;
+          break;
+        case 'D':
+          driver.driverAction = DriverAction.BUILD_DICTIONARY;
           break;
         case 'i':
           if (opts.getOptarg().length() > 0) {
@@ -98,17 +110,21 @@ public class Driver {
           if (opts.getOptarg().length() > 0) {
             driver.bkmPath = opts.getOptarg();
           }
+          break;
         case 'r':
           if (opts.getOptarg().length() > 0) {
             String a = opts.getOptarg();
             if (a.equalsIgnoreCase("TIMESTAMP_FORWARD")) {
               driver.clusterOptions.setClusteringOrder(
-                  ClusteringOrder.TIMESTAMP_FORWARD);
+                ClusteringOrder.TIMESTAMP_FORWARD);
             } else if (a.equalsIgnoreCase("TIMESTAMP_REVERSE")) {
               driver.clusterOptions.setClusteringOrder(
-                  ClusteringOrder.TIMESTAMP_REVERSE);
+                ClusteringOrder.TIMESTAMP_REVERSE);
             } else if (a.equalsIgnoreCase("RANDOM")) {
               driver.clusterOptions.setClusteringOrder(ClusteringOrder.RANDOM);
+            } else {
+              System.out.println("Unknown clustering order!");
+              System.exit(-1);
             }
           }
           break;
@@ -117,58 +133,193 @@ public class Driver {
           if (termLimit > 0) {
             driver.clusterOptions.setMaxTermLimit(termLimit);
             driver.clusterOptions.setTermReductionApproach(
-                TermReductionApproach.USE_TERM_REDUCTION);
+              TermReductionApproach.USE_TERM_REDUCTION);
           } else {
             driver.clusterOptions.setTermReductionApproach(
-                TermReductionApproach.NO_TERM_REDUCTION);
+              TermReductionApproach.NO_TERM_REDUCTION);
           }
           break;
         case 'a':
           String a = opts.getOptarg();
           if (a.equalsIgnoreCase("GREEDY_ALLOCATION")) {
             driver.clusterOptions.setClusteringApproach(
-                ClusteringApproach.GREEDY_ALLOCATION);
+              ClusteringApproach.GREEDY_ALLOCATION);
           } else if (a.equalsIgnoreCase("BEST_FIT_ALLOCATION")) {
             driver.clusterOptions.setClusteringApproach(
-                ClusteringApproach.BEST_FIT_ALLOCATION);
+              ClusteringApproach.BEST_FIT_ALLOCATION);
           } else if (a.equalsIgnoreCase("REASONABLE_EFFORT")) {
             driver.clusterOptions.setClusteringApproach(
-                ClusteringApproach.REASONABLE_EFFORT);
-          }
+              ClusteringApproach.REASONABLE_EFFORT);
+          } else {
+            System.out.println("Invalid clustering approach!");
+            System.exit(-1);
+          }    
           break;
         case 't':
           double reasonableEffort = Double.parseDouble(opts.getOptarg());
           if (reasonableEffort > 0.0 && reasonableEffort <= 1.0) {
             driver.clusterOptions.setReasonableEffortValue(reasonableEffort);
             driver.clusterOptions.setClusteringApproach(
-                ClusteringApproach.REASONABLE_EFFORT);
+              ClusteringApproach.REASONABLE_EFFORT);
+          } else {
+            System.out.println("Reasonable effort value must be (0,1.0]");
+            System.exit(-1);
           }
           break;
         case 'c':
           double capacityFraction = Double.parseDouble(opts.getOptarg());
           if (capacityFraction > 0.0 && capacityFraction <= 1.0) {
             driver.clusterOptions.setCapacityFraction(capacityFraction);
+          } else {
+            System.out.println("Invalid capacity fraction!");
+            System.exit(-1);
           }
           break;
         case 'm':
           int maxClusterSize = Integer.parseInt(opts.getOptarg());
           if (maxClusterSize > 0) {
             driver.clusterOptions.setMaxClusterSize(maxClusterSize);
+          } else {
+            System.out.println("Invalid maximum cluster size!");
+            System.exit(-1);
           }
           break;
+        case 'x':
+          driver.stopListFileName = opts.getOptarg();
+          break;
+        default:
+          System.out.println("Unknown options: '" + c + "'");
+          System.exit(-1);
       }
     }
     
     switch (driver.driverAction) {
       case NOTHING:
+        System.out.println("No valid action selected!");
+        break;
+      case BUILD_DICTIONARY:
+        if (driver.input == null || driver.output == null || driver.bkmPath == null) {
+          System.out.println(
+            "Invalid options for building the global dictionary!");
+          System.exit(-1);
+        }
+   
+        BirchKmeans bkm = null;
+        
+        // See if driver.bkmPath points to an existing BirchKmeans object
+        // if it does, load it (we'll just update it), otherwise make a new one.
+        
+        try {
+          bkm = BirchKmeans.deserializeBirchKmeans(driver.bkmPath);
+        } catch (FileNotFoundException ex) {
+          // File not found, make a new BKM Object!
+          bkm = new BirchKmeans();
+        } catch (Exception ex) {
+          // Fatal Exception
+          ex.printStackTrace();
+          System.exit(-1);
+        }
+      
+        bkm.buildGlobalDictionaryFromSerializedRawDocuments(driver.input,
+            driver.output);
+
+        try {
+          BirchKmeans.serializeBirchKMeans(bkm, driver.bkmPath);
+        } catch (Exception ex) {
+          ex.printStackTrace();
+          System.exit(-1);
+        }
         break;
       case BUILD_DOCUMENTS:
+        if (driver.stopListFileName == null || driver.input == null ||
+            driver.output == null) {
+          System.out.println("stoplistfilename = " + driver.stopListFileName);
+          System.out.println("input = " + driver.input);
+          System.out.println("out = " + driver.output);
+          System.out.println("Invalid options for building parsed documents!");
+          System.exit(-1);
+        }
+        IStemmer st = new Stemmer();
+        StopList sl = null;
+        try {
+          sl = new StopList(st, driver.stopListFileName);
+        } catch (Exception ex) {
+          ex.printStackTrace();
+          System.exit(-1);
+        }
+        driver.parseAndSerializeDocuments(driver.input, driver.output, sl, st);
         break;
       case SET_OPTIONS:
+        if (driver.clusterOptionsPath == null) {
+          System.out.println("Invalid options for setting options!");
+          System.exit(-1);
+        }
+        try {
+          BirchClusterOptions.serializeBirchClusterOptions(
+            driver.clusterOptions, driver.clusterOptionsPath);
+        } catch (Exception ex) {
+          ex.printStackTrace();
+          System.exit(-1);
+        }
         break;
       case SHOW_OPTIONS:
+        if (driver.clusterOptionsPath == null) {
+          System.out.println("Invalid options for showing options!");
+          System.exit(-1);
+        }
+        BirchClusterOptions bco = null;
+        try {
+          bco = BirchClusterOptions.deserializeBirchClusterOptions(
+            driver.clusterOptionsPath);
+        } catch (Exception ex) {
+          ex.printStackTrace();
+          System.exit(-1);
+        }
+        System.out.println(bco);
         break;
       case CLUSTER:
+        BirchClusterOptions options = null;
+        if (driver.clusterOptionsPath != null) {
+          try {
+            options = BirchClusterOptions.deserializeBirchClusterOptions(
+              driver.clusterOptionsPath);
+          } catch (Exception ex) {
+            ex.printStackTrace();
+            System.exit(-1);
+          }
+        } else { // See if enough options were specified as parameters!
+          if (driver.clusterOptions.verify() == false) {
+            System.out.println("Insufficient options set to cluster!");
+            System.exit(-1);
+          } else {
+            options = driver.clusterOptions;
+          }
+        }
+        
+        BirchKmeans birch = null;
+        if (driver.bkmPath == null) {
+          System.out.println("Path to BirchKmeans object is not specified!");
+          System.exit(-1);
+        }
+        try {
+          birch = BirchKmeans.deserializeBirchKmeans(driver.bkmPath);
+        }  catch (Exception ex) {
+          // Fatal Exception
+          ex.printStackTrace();
+          System.exit(-1);
+        }
+        
+        birch.setClusterOptions(options); // set final options before clustering
+        
+        if (driver.input == null || driver.output == null) {
+          System.out.println("Please specify appropriate input and output " +
+              "directories in order to finish clustering!");
+          System.exit(-1);
+        }
+        
+        birch.useGlobalDictionaryAndBuildNormalizedVectors(driver.input, 
+            driver.output);
+        birch.clusterDocuments();
         break;
     }
   }

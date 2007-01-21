@@ -202,7 +202,7 @@ public class BirchClusterOptions implements Serializable {
           this.maxTrialsForReasonableEffort + "\n");
     }
     sb.append("Capacity Fraction: " + this.capacityFraction + "\n");
-    sb.append("Max Cluster Size: " + this.maxClusterSize + "\n");
+    sb.append("Max Cluster Size: " + this.maxClusterSize + "");
     return sb.toString();
   }
 }
