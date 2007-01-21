@@ -27,7 +27,7 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
   public BirchClusterOptions clusterOptions = null;
   
   /** Creates a new instance of BirchKmeans */
-  public BirchKmeans() throws Exception {
+  public BirchKmeans() {
     super();
     
     this.globalVectorSum = new SparseVector();
@@ -90,7 +90,7 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
           
           String p2FileName = outputDirectory + File.separator +
               files[i].getName();
-          p2FileName.replaceAll(".bp1$", ".bp2");
+          p2FileName = p2FileName.replaceAll("bp1$", "bp2");
           Document.serializeDocument(doc, p2FileName);
           
           ++numDocumentsAdded;
@@ -474,7 +474,7 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
   }
   
   public static BirchKmeans deserializeBirchKmeans(String filename)
-  throws Exception {
+  throws Exception, FileNotFoundException {
     FileInputStream fis = new FileInputStream(filename);
     ObjectInputStream ois = new ObjectInputStream(fis);
     BirchKmeans bkm = (BirchKmeans) ois.readObject();
@@ -492,10 +492,16 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
       return;
     }
     
-    this.termReductionList = new int[n];
     int numTerms = this.getNumberOfDistinctTerms();
-    double smallestVarianceInQueue = Double.MAX_VALUE;
+    if (numTerms < n) {
+      System.out.println("Asked to reduce terms to " + n + " but" +
+        " there are only " + numTerms + " total, aborting!");
+      System.exit(-1);
+    }
     
+    this.termReductionList = new int[n];
+    double smallestVarianceInQueue = Double.MAX_VALUE;
+  
     PriorityQueue<TermVarianceStructure> pq =
         new PriorityQueue<TermVarianceStructure> (numTerms);
     

@@ -16,6 +16,12 @@ public class BirchDocumentFactory {
     this.stemmer = stemmer;
   }
   
+  public int createSerializedDocuments (String srcDirectory,
+      String outDirectory, int fileNum) {
+      return(this.createSerializedDocuments(srcDirectory, 1, outDirectory, 
+          fileNum));
+  }
+  
   /**
    * This function parses documents in a directory tree. The Document objects it
    * creates are not linked to any particular model.

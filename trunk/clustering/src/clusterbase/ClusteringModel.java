@@ -24,8 +24,7 @@ abstract public class ClusteringModel implements Serializable {
   protected int numberOfTerms = 0;
 
   /** Creates a new instance of ClusteringModel */
-  public ClusteringModel() 
-      throws Exception {
+  public ClusteringModel() {
     this.termDictionary = new Hashtable<String, Integer>();
     this.numGlobalTermOccurences = new SparseVector();
     this.numDocumentsContainingTerm = new SparseVector();
