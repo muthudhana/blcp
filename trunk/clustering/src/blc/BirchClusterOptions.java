@@ -19,7 +19,8 @@ enum ClusteringApproach implements Serializable {
     NOTHING,
     GREEDY_ALLOCATION,
     BEST_FIT_ALLOCATION,
-    REASONABLE_EFFORT
+    REASONABLE_EFFORT_FORWARD,
+    REASONABLE_EFFORT_BACKWARD
 }
 
 public class BirchClusterOptions implements Serializable {
@@ -109,7 +110,7 @@ public class BirchClusterOptions implements Serializable {
   
   public ClusteringApproach setReasonableEffortValue(double value) {
     this.maxTrialsForReasonableEffort = value;
-    return this.setClusteringApproach(clusteringApproach.REASONABLE_EFFORT);
+    return this.getClusteringApproach();
   }
   
   public double getCapacityFraction() {
@@ -132,7 +133,10 @@ public class BirchClusterOptions implements Serializable {
     // Verify a clusteringApproach has been specified.
     if (this.clusteringApproach == ClusteringApproach.NOTHING) {
       return false;
-    } else if (this.clusteringApproach == ClusteringApproach.REASONABLE_EFFORT) 
+    } else if (this.clusteringApproach == 
+        ClusteringApproach.REASONABLE_EFFORT_FORWARD || 
+        this.clusteringApproach == 
+        ClusteringApproach.REASONABLE_EFFORT_BACKWARD) 
         {
       // If we are using a resonable effort approach, make sure the percentage
       // of trials to conduct is specified.
@@ -197,12 +201,15 @@ public class BirchClusterOptions implements Serializable {
       sb.append("  Terms reduced to: " + this.termLimit + " terms.\n");
     }
     sb.append("Clustering Approach: " + this.clusteringApproach + "\n");
-    if (this.clusteringApproach == ClusteringApproach.REASONABLE_EFFORT) {
+    if (this.clusteringApproach == 
+        ClusteringApproach.REASONABLE_EFFORT_FORWARD || 
+        this.clusteringApproach == 
+        ClusteringApproach.REASONABLE_EFFORT_BACKWARD) {
       sb.append("  Reasonable effort percentage: " + 
           this.maxTrialsForReasonableEffort + "\n");
     }
     sb.append("Capacity Fraction: " + this.capacityFraction + "\n");
-    sb.append("Max Cluster Size: " + this.maxClusterSize + "");
+    sb.append("Max Cluster Size: " + this.maxClusterSize + "\n");
     return sb.toString();
   }
 }
