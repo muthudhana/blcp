@@ -113,7 +113,7 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
    * actual clustering.
    */
   public int useGlobalDictionaryAndBuildNormalizedVectors(
-      String serializedFilesPath, String outputDirectory) {
+      String serializedFilesPath) {
     
     // Clustering options must be configured before this point!
     if (this.clusterOptions == null) {
@@ -137,8 +137,7 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
       // If we reach a directory, recursively descend through it.
       if (files[i].isDirectory()) {
         numDocumentsAdded += this.useGlobalDictionaryAndBuildNormalizedVectors(
-            files[i].getAbsolutePath(), outputDirectory + File.pathSeparator +
-            files[i].getName());
+            files[i].getAbsolutePath());
         continue; // nothing more to do on this iteration
       }
       
@@ -389,7 +388,7 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
           }
         }        
         break;
-      case REASONABLE_EFFORT:
+      case REASONABLE_EFFORT_FORWARD:
         int clustersToCheck = (int)Math.ceil(
             this.clusterOptions.getReasonableEffortValue() * 
             this.clusters.size());
@@ -406,6 +405,38 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
           // theoretically accept an additional document against our reasonable
           // effort condition.
           --clustersToCheck;
+          
+          double proposedChangeInQuality = c.calculateChangeInQuality(
+              this.getNormalizedDocumentVector(doc));
+          double currentQuality = c.getQuality();
+          double newQuality = proposedChangeInQuality + currentQuality;
+          
+          if (proposedChangeInQuality < qualityDeltaForBestCluster &&
+              newQuality < upperQualityBound * (c.getNumberOfDocuments() + 1)) {
+            bestClusterIdx = i;
+            qualityDeltaForBestCluster = proposedChangeInQuality;
+            qualityForBestCluster = newQuality;
+          }
+        }
+        break;
+      case REASONABLE_EFFORT_BACKWARD:
+        int clustersToCheckB = (int)Math.ceil(
+            this.clusterOptions.getReasonableEffortValue() * 
+            this.clusters.size());
+        
+        for (int i = this.clusters.size() - 1; i >= 0 && clustersToCheckB > 0; 
+            --i) {
+          BirchCluster c = this.clusters.get(i);
+          if ((c.getNumberOfDocuments() + 1) > maxClusterSize) {
+            continue;
+          }
+          
+          // For reasonable effort, we only really care about clusters that
+          // aren't already full, so let's not count them.  By decrementing
+          // clustersToCheck here, we only count those clusters that could
+          // theoretically accept an additional document against our reasonable
+          // effort condition.
+          --clustersToCheckB;
           
           double proposedChangeInQuality = c.calculateChangeInQuality(
               this.getNormalizedDocumentVector(doc));
@@ -530,15 +561,32 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
   
   public String toString() {
     StringBuffer sb = new StringBuffer("BirchKmeans Object Info\n");
+  
     sb.append("# of documents = " + this.getNumberOfDocuments() + "\n");
     sb.append("# of distinct terms = " + this.getNumberOfDistinctTerms() +
         "\n");
     sb.append("# of total terms = " + this.getNumberOfTerms() + "\n");
     sb.append(this.clusterOptions);
+    
     Iterator<BirchCluster> itr = this.clusters.iterator();
+   
+    double avgQuality = 0.0;
+    double avgClusterSize = 0.0;
+   
     while(itr.hasNext()){
-      sb.append(itr.next().toString() + "\n");
+      BirchCluster bc = itr.next();
+      avgQuality += bc.getQuality();
+      avgClusterSize += bc.getNumberOfDocuments();
+      sb.append(bc.toString());
     }
+    
+    sb.append("\nAverage Cluster Quality = " + 
+        avgQuality / this.clusters.size() + "\n");
+    sb.append("Average # of documents per cluster = " + 
+        avgClusterSize / this.clusters.size() + "\n");
+    sb.append("Total number of clusters = " + this.clusters.size() + "\n");
+    sb.append("Global Quality = " + this.getGlobalQuality() + "\n");
+    
     return sb.toString();
   }
 }

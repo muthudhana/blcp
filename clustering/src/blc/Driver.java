@@ -147,9 +147,12 @@ public class Driver {
           } else if (a.equalsIgnoreCase("BEST_FIT_ALLOCATION")) {
             driver.clusterOptions.setClusteringApproach(
               ClusteringApproach.BEST_FIT_ALLOCATION);
-          } else if (a.equalsIgnoreCase("REASONABLE_EFFORT")) {
+          } else if (a.equalsIgnoreCase("REASONABLE_EFFORT_FORWARD")) {
             driver.clusterOptions.setClusteringApproach(
-              ClusteringApproach.REASONABLE_EFFORT);
+              ClusteringApproach.REASONABLE_EFFORT_FORWARD);
+          } else if (a.equalsIgnoreCase("REASONABLE_EFFORT_BACKWARD")) {
+            driver.clusterOptions.setClusteringApproach(
+              ClusteringApproach.REASONABLE_EFFORT_BACKWARD);
           } else {
             System.out.println("Invalid clustering approach!");
             System.exit(-1);
@@ -159,8 +162,6 @@ public class Driver {
           double reasonableEffort = Double.parseDouble(opts.getOptarg());
           if (reasonableEffort > 0.0 && reasonableEffort <= 1.0) {
             driver.clusterOptions.setReasonableEffortValue(reasonableEffort);
-            driver.clusterOptions.setClusteringApproach(
-              ClusteringApproach.REASONABLE_EFFORT);
           } else {
             System.out.println("Reasonable effort value must be (0,1.0]");
             System.exit(-1);
@@ -311,15 +312,15 @@ public class Driver {
         
         birch.setClusterOptions(options); // set final options before clustering
         
-        if (driver.input == null || driver.output == null) {
-          System.out.println("Please specify appropriate input and output " +
-              "directories in order to finish clustering!");
+        if (driver.input == null) {
+          System.out.println("Please specify appropriate input " +
+              "directory in order to finish clustering!");
           System.exit(-1);
         }
         
-        birch.useGlobalDictionaryAndBuildNormalizedVectors(driver.input, 
-            driver.output);
+        birch.useGlobalDictionaryAndBuildNormalizedVectors(driver.input);
         birch.clusterDocuments();
+        System.out.println(birch);
         break;
     }
   }
