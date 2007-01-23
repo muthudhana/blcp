@@ -5,14 +5,22 @@ import java.io.*;
 import clusterbase.*;
 
 /**
-Basic Usage Notes: 
-
-java -jar "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\dist\Clustering.jar" -O -s "c:\go.bco" -r TIMESTAMP_FORWARD -l 2500 -a GREEDY_ALLOCATION -c 0.8 -m 100
-java -jar "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\dist\Clustering.jar" -P -s "c:\go.bco"
-java -jar "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\dist\Clustering.jar" -B -o c:\corpus\serialized\ -i c:\corpus\src -x "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\stopList.txt"
-java -jar "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\dist\Clustering.jar" -D -i c:\corpus\serialized\ -o c:\corpus\serialized\ -b c:\corpus\bkm.dat 
-java -jar "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\dist\Clustering.jar" -C -i c:\corpus\serialized\ -o c:\corpus\serialized\ -s c:\go.bco -b c:\corpus\bkm.dat
-
+ * Basic Usage Notes: 
+ *
+ * Create a Birch Cluster Options object and save to a file:
+ * java -jar "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\dist\Clustering.jar" -O -s "c:\go.bco" -r TIMESTAMP_FORWARD -l 2500 -a GREEDY_ALLOCATION -c 0.8 -m 100
+ *
+ * Print out the options stored in a saved Birch Cluster Options object:
+ * java -jar "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\dist\Clustering.jar" -P -s "c:\go.bco"
+ *
+ * Build the serialized documents:
+ * java -jar "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\dist\Clustering.jar" -B -o c:\corpus\serialized\ -i c:\corpus\src -x "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\stopList.txt"
+ * 
+ * Take serialized documents, and build a BirchKmeans global dictionary and required statistics for clustering from them:
+ * java -jar "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\dist\Clustering.jar" -D -i c:\corpus\serialized\ -o c:\corpus\serialized\ -b c:\corpus\bkm.dat 
+ *
+ * Take the serialized phase 2 documents from the -D operation and the corresponding BirchKmeans object and cluster them:
+ * java -jar "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\dist\Clustering.jar" -C -i c:\corpus\serialized\ -o c:\corpus\serialized\ -s c:\go.bco -b c:\corpus\bkm.dat
 */
 
 enum DriverAction {
