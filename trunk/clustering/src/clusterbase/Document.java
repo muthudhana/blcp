@@ -23,17 +23,18 @@ public class Document implements Serializable {
   /** Creates a new instance of Document */
   public Document(String document, StopList stopList, IStemmer stemmer, 
       int sourceId) {
-    // Tokenize using porter
+    
+    // Uncomment the next 2 lines and comment out the 3rd to use the
+    //     tokenizer.
     ITokenizer tok = new EmailTokenizer(stemmer, document);
+    this.timestamp = ((EmailTokenizer) tok).getTimestamp();
+    //ITokenizer tok = new Tokenizer(stemmer, document);
     
     this.sourceId = sourceId;
     this.filename = new String(document);
     this.documentVocabulary = new Hashtable<String, Integer>();
     this.termList = null;
 
-    /* comment out this block if not doing birch! */
-    this.timestamp = ((EmailTokenizer) tok).getTimestamp();
-    /* end block */
 
     System.out.println("Parsing file: " + document);
 
