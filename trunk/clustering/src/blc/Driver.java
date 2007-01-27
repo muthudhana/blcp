@@ -332,6 +332,10 @@ public class Driver {
         }
         
         birch.useGlobalDictionaryAndBuildNormalizedVectors(driver.input);
+        
+        // Split the next two methods off into their own high level action.
+        // This will allow us to reuse data from the previous steps and perform
+        // less work!
         birch.clusterDocuments();
         System.out.println(birch);
         break;
