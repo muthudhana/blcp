@@ -45,7 +45,22 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
     return this.clusterOptions;
   }
   
-  public void setClusterOptions(BirchClusterOptions bc) {
+  public void setClusterOptions(BirchClusterOptions bc) throws Exception {
+    if (this.blockNewDocumentsAndTermReduction == true) {
+      // useGlobalDictionaryAndBuildNormalizedVectors has been called.
+      // We can still update options for clusterDocuments() but we can't
+      // allow someone to specify a new BirchClusterOptions object that
+      // differs in term reduction, we can't use it.
+      
+      if (bc.getClusteringApproach() != 
+          this.clusterOptions.getClusteringApproach()) {
+        throw new Exception("After normalized documents have been created, a " +
+            "new Clustering object with a different term reduction scheme " +
+            "cannot be specified!");
+      }
+    }
+    
+    // Set the new BCO object
     this.clusterOptions = bc;
   }
   
@@ -242,16 +257,29 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
   }
   
   /**
+   * Overloaded form of clusterDocuments(boolean). If clusters have already
+   * been built, this will delete them, and start the process of clustering
+   * from scratch.  If not, it will make clusters for the first time.
+   */
+  public int clusterDocuments() {
+    return this.clusterDocuments(true);
+  }
+  
+  /**
    * Calculating the upper quality bound using the cluster density factor is
    * extremely resource intensive. In an effort to deal with this,
    * clusterDocuments() is a light wrapper around the function
    * clusterDocumentsInternal(). 
    */
-  public int clusterDocuments() {
+  public int clusterDocuments(boolean startOver) {
     if (this.clusterOptions == null) {
       return -1;
     }
-      
+    
+    if (this.clusters != null && startOver == true) {
+      this.clusters = new ArrayList<BirchCluster>();
+    }
+    
     double upperQualityBound = this.clusterOptions.getCapacityFraction() *
         (this.getGlobalQuality() / this.getNumberOfDocuments());
     

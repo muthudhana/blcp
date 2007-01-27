@@ -318,7 +318,12 @@ public class Driver {
           System.exit(-1);
         }
         
-        birch.setClusterOptions(options); // set final options before clustering
+        try {
+          birch.setClusterOptions(options); // set final options before clustering
+        } catch (Exception ex) {
+          ex.printStackTrace();
+          System.exit(-1);
+        }
         
         if (driver.input == null) {
           System.out.println("Please specify appropriate input " +
