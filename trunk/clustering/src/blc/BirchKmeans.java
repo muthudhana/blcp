@@ -22,6 +22,7 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
   private int[] termReductionList = null;
   private java.util.Random myRand = null;
   private int totalNumberOfNonZeroDocumentCoordinates = 0;
+  private boolean verboseOutput = false;
   
   private boolean blockNewDocumentsAndTermReduction = false;
   
@@ -99,8 +100,10 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
           Document doc = Document.deserializeDocument(
               files[i].getAbsolutePath());
           
-          System.out.println("Phase 1 Incorporated document: " +
-              files[i].getAbsolutePath());
+          if (this.beVerbose()) {
+            System.out.println("Phase 1 Incorporated document: " +
+                files[i].getAbsolutePath());
+          }
           
           this.incorporateDocumentStatisticsIntoModel(doc);
           
@@ -160,8 +163,10 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
       if (files[i].isFile() &&
           files[i].getAbsolutePath().endsWith(".bp2") == true) {
         File d = files[i];
-        System.out.println("Phase 2 Incorporated and loaded: " +
-            d.getAbsolutePath());
+        if (this.beVerbose()) {
+          System.out.println("Phase 2 Incorporated and loaded: " +
+              d.getAbsolutePath());
+        }
         
         try {
           Document doc = Document.deserializeDocument(d.getAbsolutePath());
@@ -289,16 +294,20 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
     double upperQualityBound = this.clusterOptions.getCapacityFraction() *
         (this.getGlobalQuality() / this.getNumberOfDocuments());
     
-    System.out.println("Global quality = " + this.getGlobalQuality() );
-    System.out.println("num docs = " + this.numberOfDocuments);
-    System.out.println("upper = " + upperQualityBound);
-    
+    if (this.beVerbose()) {
+      System.out.println("Global quality = " + this.getGlobalQuality() );
+      System.out.println("num docs = " + this.numberOfDocuments);
+      System.out.println("upper = " + upperQualityBound);
+    }
+
     if (this.clusterOptions.getClusteringOrder() == ClusteringOrder.RANDOM) {
       // reseed in case we are in a serialized object.
       this.myRand.setSeed((new java.util.Date()).getTime());
       ArrayList<DocumentTimeStruct> al = new ArrayList<DocumentTimeStruct>(pq);
-      System.out.println("Al size " + al.size());
       
+      if (this.beVerbose()) {
+        System.out.println("Al size " + al.size());
+      }
       while (al.size() > 0) {
         int randIndex = this.myRand.nextInt(al.size());
         Document doc = null;
@@ -308,8 +317,11 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
         } catch (Exception ex) {
           ex.printStackTrace();
         }
-        System.out.println("Clustering document: " + doc.getFilename() );
-        System.out.println("Timestamp: " + doc.getTimestamp() );
+        
+        if (this.beVerbose()) {
+          System.out.println("Clustering document: " + doc.getFilename() );
+          System.out.println("Timestamp: " + doc.getTimestamp() );
+        }
         this.clusterDocument(doc);
       }
       return this.clusters.size();
@@ -325,8 +337,11 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
           ex.printStackTrace();
         }
         
-        System.out.println("Clustering document: " + doc.getFilename());
-        System.out.println("Timestamp: " + doc.getTimestamp());
+        if (this.beVerbose()) {
+          System.out.println("Clustering document: " + doc.getFilename());
+          System.out.println("Timestamp: " + doc.getTimestamp());
+        }
+        
         this.clusterDocument(doc);
       }
       return this.clusters.size();
@@ -358,8 +373,12 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
         } catch (Exception ex) {
           ex.printStackTrace();
         }
-        System.out.println("Clustering document: " + doc.getFilename() );
-        System.out.println("Timestamp: " + doc.getTimestamp() );
+        
+        if (this.beVerbose()) {
+          System.out.println("Clustering document: " + doc.getFilename() );
+          System.out.println("Timestamp: " + doc.getTimestamp() );
+        }
+        
         this.clusterDocument(doc);
       }
       return this.clusters.size();
@@ -378,8 +397,10 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
     double upperQualityBound = this.clusterOptions.getCapacityFraction() *
         (this.getGlobalQuality() / this.getNumberOfDocuments());
     
-    System.out.println("Pop Count of Doc Vec = " +
-        this.getNormalizedDocumentVector(doc).getPopCount());
+    if (this.beVerbose()) {
+      System.out.println("Pop Count of Doc Vec = " +
+          this.getNormalizedDocumentVector(doc).getPopCount());
+    }
     
     switch (this.clusterOptions.getClusteringApproach()) {
       case BEST_FIT_ALLOCATION:
@@ -490,15 +511,20 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
     if (bestClusterIdx >= 0) {
       this.clusters.get(bestClusterIdx).addDocument(
           this, doc, qualityForBestCluster);
-      System.out.println("Added document to EXISTING cluster #" +
-          bestClusterIdx);
+      if (this.beVerbose()) {
+        System.out.println("Added document to EXISTING cluster #" +
+            bestClusterIdx);
+      }
     } else { // this was a bad fit for all clusters
       BirchCluster bc = new BirchCluster(this.getNumberOfDistinctTerms());
       bc.addDocument(this, doc);
       // These next two lines should be atomic.
       this.clusters.add(bc);
       bestClusterIdx = this.clusters.size() - 1;
-      System.out.println("Added document to NEW cluster #" + bestClusterIdx);
+      
+      if (this.beVerbose()) {
+        System.out.println("Added document to NEW cluster #" + bestClusterIdx);
+      }
     }
     return bestClusterIdx;
   }
@@ -531,6 +557,8 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
   
   public static void serializeBirchKMeans(BirchKmeans bkm,
       String outputFileName) throws Exception {
+    // verbosity doesn't persist through serialization
+    bkm.setVerboseOuput(false); 
     FileOutputStream fos = new FileOutputStream(outputFileName);
     ObjectOutputStream oos = new ObjectOutputStream(fos);
     oos.writeObject(bkm);
@@ -594,13 +622,13 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
   }
   
   public String toString() {
-    StringBuffer sb = new StringBuffer("BirchKmeans Object Info\n");
+    StringBuffer sb = new StringBuffer("\n\nBirchKmeans Object Info\n");
   
     sb.append("# of documents      = " + this.getNumberOfDocuments() + "\n");
     sb.append("# of distinct terms = " + this.getNumberOfDistinctTerms() +
         "\n");
     sb.append("# of total terms    = " + this.getNumberOfTerms() + "\n");
-    sb.append("Global Sparsity     = " + this.getGlobalSparsity() + "\n");
+    sb.append("Global Sparsity     = " + this.getGlobalSparsity() + "\n\n");
     sb.append(this.clusterOptions);
     
     Iterator<BirchCluster> itr = this.clusters.iterator();
@@ -614,7 +642,7 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
       avgQuality += bc.getQuality();
       avgClusterSize += bc.getNumberOfDocuments();
       avgSparsity += bc.getSparsity();
-      sb.append(bc.toString());
+      sb.append("\n" + bc.toString());
     }
     
     sb.append("\nAverage Cluster Quality = " + 
@@ -622,10 +650,19 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
     sb.append("Average # of documents per cluster = " + 
         avgClusterSize / this.clusters.size() + "\n");
     sb.append("Average sparsity of each cluster = " + 
-        avgSparsity / this.clusters.size());
+        avgSparsity / this.clusters.size() + "\n");
     sb.append("Total number of clusters = " + this.clusters.size() + "\n");
     sb.append("Global Quality = " + this.getGlobalQuality() + "\n");
     
     return sb.toString();
+  }
+
+  public boolean setVerboseOuput(boolean verboseOutputEnabled) {
+    this.verboseOutput = verboseOutputEnabled;
+    return this.verboseOutput;
+  }
+  
+  public boolean beVerbose() {
+    return this.verboseOutput;
   }
 }

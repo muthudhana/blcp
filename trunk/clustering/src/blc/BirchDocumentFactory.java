@@ -10,6 +10,8 @@ public class BirchDocumentFactory {
   
   protected IStemmer stemmer = null;
   protected StopList stopList = null;
+
+  private boolean verboseOutput = false;
   
   public BirchDocumentFactory(StopList stopList, IStemmer stemmer) {
     this.stopList = stopList;
@@ -58,7 +60,10 @@ public class BirchDocumentFactory {
           
           Document.serializeDocument (doc, outputDirectory + 
               File.separator + files[i].getName() + ".bp1");
-          System.out.println ("Creating serialized document #" + fileNum);
+          
+          if (this.beVerbose()) {
+            System.out.println ("Creating serialized document #" + fileNum);
+          }
           
           ++fileNum;
           ++numDocumentsAdded;
@@ -69,5 +74,14 @@ public class BirchDocumentFactory {
       }
     }
     return numDocumentsAdded;
+  }
+  
+  public boolean setVerboseOuput(boolean verboseOutputEnabled) {
+    this.verboseOutput = verboseOutputEnabled;
+    return this.verboseOutput;
+  }
+  
+  public boolean beVerbose() {
+    return this.verboseOutput;
   }
 }
