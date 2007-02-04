@@ -54,11 +54,16 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
       // allow someone to specify a new BirchClusterOptions object that
       // differs in term reduction, we can't use it.
       
-      if (bc.getClusteringApproach() != 
-          this.clusterOptions.getClusteringApproach()) {
-        throw new Exception("After normalized documents have been created, a " +
-            "new Clustering object with a different term reduction scheme " +
-            "cannot be specified!");
+      if (this.clusterOptions.getTermReductionApproach() == 
+          TermReductionApproach.USE_TERM_REDUCTION) 
+          {
+        if ((bc.getTermReductionApproach() != 
+            TermReductionApproach.USE_TERM_REDUCTION) || 
+            (this.clusterOptions.getMaxTermLimit() != bc.getMaxTermLimit())) {
+          throw new Exception("After normalized documents have been created, " +
+              "a new Clustering object with a different term reduction " +
+              "scheme cannot be defined!");
+        } 
       }
     }
     
