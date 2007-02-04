@@ -627,15 +627,13 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
   }
   
   public String toString() {
-    StringBuffer sb = new StringBuffer("\n\nBirchKmeans Object Info\n");
-  
-    sb.append("# of documents      = " + this.getNumberOfDocuments() + "\n");
-    sb.append("# of distinct terms = " + this.getNumberOfDistinctTerms() +
-        "\n");
-    sb.append("# of total terms    = " + this.getNumberOfTerms() + "\n");
-    sb.append("Global Sparsity     = " + this.getGlobalSparsity() + "\n\n");
-    sb.append(this.clusterOptions);
+    StringBuffer sb = new StringBuffer();
+    if (this.beVerbose()) {
+      sb.append("\n\n");
+    }
     
+    sb.append("BirchKmeans Object Info\n");
+
     Iterator<BirchCluster> itr = this.clusters.iterator();
    
     double avgQuality = 0.0;
@@ -650,6 +648,13 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
       sb.append("\n" + bc.toString());
     }
     
+    sb.append("# of documents      = " + this.getNumberOfDocuments() + "\n");
+    sb.append("# of distinct terms = " + this.getNumberOfDistinctTerms() +
+        "\n");
+    sb.append("# of total terms    = " + this.getNumberOfTerms() + "\n");
+    sb.append("Global Sparsity     = " + this.getGlobalSparsity() + "\n\n");
+    sb.append(this.clusterOptions);
+        
     sb.append("\nAverage Cluster Quality = " + 
         avgQuality / this.clusters.size() + "\n");
     sb.append("Average # of documents per cluster = " + 
