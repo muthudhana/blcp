@@ -103,6 +103,7 @@ public class Driver {
           break;
         case 'N':
           driver.driverAction = DriverAction.NORMALIZE_VECTORS;
+          break;
         case 'i':
           if (opts.getOptarg().length() > 0) {
             driver.input = opts.getOptarg();
