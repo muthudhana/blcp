@@ -43,6 +43,7 @@ public class Driver {
   public String bkmOutputPath = null;
   public BirchClusterOptions clusterOptions = new BirchClusterOptions();
   public String stopListFileName = null;
+  public boolean verbose = false;
   
   public Driver() {
   }
@@ -82,7 +83,7 @@ public class Driver {
     String arg;
     int c = -1;
     
-    Getopt opts = new Getopt("blcp", args, "BOCPDNi:o:s:b:k:r:l:a:t:c:m:x:");
+    Getopt opts = new Getopt("blcp", args, "BOCPDNi:o:s:b:k:r:l:a:t:c:m:x:v");
     
     while ((c = opts.getopt()) != -1) {
       switch (c) {
@@ -108,6 +109,9 @@ public class Driver {
           if (opts.getOptarg().length() > 0) {
             driver.input = opts.getOptarg();
           }
+          break;
+        case 'v':
+          driver.verbose = true;
           break;
         case 'o':
           if (opts.getOptarg().length() > 0) {
@@ -319,6 +323,7 @@ public class Driver {
         }
         
         BirchKmeans birch = null;
+        
         if (driver.bkmInputPath == null) {
           System.out.println("Path to BirchKmeans object is not specified!");
           System.exit(-1);
@@ -339,6 +344,10 @@ public class Driver {
           System.exit(-1);
         }
   
+        if (driver.verbose) {
+          birch.setVerboseOuput(true);
+        }
+        
         if (driver.driverAction == DriverAction.NORMALIZE_VECTORS) {
           if (driver.input == null) {
             System.out.println("Please specify appropriate input " +
