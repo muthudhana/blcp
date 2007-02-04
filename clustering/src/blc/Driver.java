@@ -29,6 +29,7 @@ enum DriverAction {
   BUILD_DOCUMENTS,
   SET_OPTIONS,
   SHOW_OPTIONS,
+  NORMALIZE_VECTORS,
   CLUSTER
 }
 
@@ -38,7 +39,8 @@ public class Driver {
   public String input = null;
   public String output = null;
   public String clusterOptionsPath = null;
-  public String bkmPath = null;
+  public String bkmInputPath = null;
+  public String bkmOutputPath = null;
   public BirchClusterOptions clusterOptions = new BirchClusterOptions();
   public String stopListFileName = null;
   
@@ -80,7 +82,7 @@ public class Driver {
     String arg;
     int c = -1;
     
-    Getopt opts = new Getopt("blcp", args, "BOCPDi:o:s:b:r:l:a:t:c:m:x:");
+    Getopt opts = new Getopt("blcp", args, "BOCPDNi:o:s:b:k:r:l:a:t:c:m:x:");
     
     while ((c = opts.getopt()) != -1) {
       switch (c) {
@@ -99,6 +101,8 @@ public class Driver {
         case 'D':
           driver.driverAction = DriverAction.BUILD_DICTIONARY;
           break;
+        case 'N':
+          driver.driverAction = DriverAction.NORMALIZE_VECTORS;
         case 'i':
           if (opts.getOptarg().length() > 0) {
             driver.input = opts.getOptarg();
@@ -116,7 +120,12 @@ public class Driver {
           break;
         case 'b':
           if (opts.getOptarg().length() > 0) {
-            driver.bkmPath = opts.getOptarg();
+            driver.bkmInputPath = opts.getOptarg();
+          }
+          break;
+        case 'k':
+          if (opts.getOptarg().length() > 0) {
+            driver.bkmOutputPath = opts.getOptarg();
           }
           break;
         case 'r':
@@ -207,7 +216,8 @@ public class Driver {
         System.out.println("No valid action selected!");
         break;
       case BUILD_DICTIONARY:
-        if (driver.input == null || driver.output == null || driver.bkmPath == null) {
+        if (driver.input == null || driver.output == null ||
+            driver.bkmInputPath == null || driver.bkmOutputPath == null) {
           System.out.println(
             "Invalid options for building the global dictionary!");
           System.exit(-1);
@@ -219,7 +229,7 @@ public class Driver {
         // if it does, load it (we'll just update it), otherwise make a new one.
         
         try {
-          bkm = BirchKmeans.deserializeBirchKmeans(driver.bkmPath);
+          bkm = BirchKmeans.deserializeBirchKmeans(driver.bkmInputPath);
         } catch (FileNotFoundException ex) {
           // File not found, make a new BKM Object!
           bkm = new BirchKmeans();
@@ -233,7 +243,7 @@ public class Driver {
             driver.output);
 
         try {
-          BirchKmeans.serializeBirchKMeans(bkm, driver.bkmPath);
+          BirchKmeans.serializeBirchKMeans(bkm, driver.bkmOutputPath);
         } catch (Exception ex) {
           ex.printStackTrace();
           System.exit(-1);
@@ -286,6 +296,7 @@ public class Driver {
         }
         System.out.println(bco);
         break;
+      case NORMALIZE_VECTORS:
       case CLUSTER:
         BirchClusterOptions options = null;
         if (driver.clusterOptionsPath != null) {
@@ -298,7 +309,8 @@ public class Driver {
           }
         } else { // See if enough options were specified as parameters!
           if (driver.clusterOptions.verify() == false) {
-            System.out.println("Insufficient options set to cluster!");
+            System.out.println("Insufficient options are set in order to " +
+                "proceed!");
             System.exit(-1);
           } else {
             options = driver.clusterOptions;
@@ -306,12 +318,12 @@ public class Driver {
         }
         
         BirchKmeans birch = null;
-        if (driver.bkmPath == null) {
+        if (driver.bkmInputPath == null) {
           System.out.println("Path to BirchKmeans object is not specified!");
           System.exit(-1);
         }
         try {
-          birch = BirchKmeans.deserializeBirchKmeans(driver.bkmPath);
+          birch = BirchKmeans.deserializeBirchKmeans(driver.bkmInputPath);
         }  catch (Exception ex) {
           // Fatal Exception
           ex.printStackTrace();
@@ -319,25 +331,35 @@ public class Driver {
         }
         
         try {
-          birch.setClusterOptions(options); // set final options before clustering
+          // set final options before clustering
+          birch.setClusterOptions(options); 
         } catch (Exception ex) {
           ex.printStackTrace();
           System.exit(-1);
         }
-        
-        if (driver.input == null) {
-          System.out.println("Please specify appropriate input " +
-              "directory in order to finish clustering!");
-          System.exit(-1);
+  
+        if (driver.driverAction == DriverAction.NORMALIZE_VECTORS) {
+          if (driver.input == null) {
+            System.out.println("Please specify appropriate input " +
+                "directory in order to finish clustering!");
+            System.exit(-1);
+          }
+          if (driver.bkmOutputPath == null) {
+            System.out.println("Please specify the output location of the " +
+                "BirchKmeans object using -k");
+            System.exit(-1);
+          }
+          birch.useGlobalDictionaryAndBuildNormalizedVectors(driver.input);
+          try {
+            BirchKmeans.serializeBirchKMeans(birch, driver.bkmOutputPath);
+          } catch (Exception ex) {
+            ex.printStackTrace();
+            System.exit(-1);
+          }
+        } else if (driver.driverAction == DriverAction.CLUSTER) {
+          birch.clusterDocuments();
+          System.out.println(birch);
         }
-        
-        birch.useGlobalDictionaryAndBuildNormalizedVectors(driver.input);
-        
-        // Split the next two methods off into their own high level action.
-        // This will allow us to reuse data from the previous steps and perform
-        // less work!
-        birch.clusterDocuments();
-        System.out.println(birch);
         break;
     }
   }
