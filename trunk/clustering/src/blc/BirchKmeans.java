@@ -648,6 +648,8 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
       sb.append("\n" + bc.toString());
     }
     
+    sb.append("\n========================================================\n\n");
+    sb.append("Global Statistics\n");
     sb.append("# of documents      = " + this.getNumberOfDocuments() + "\n");
     sb.append("# of distinct terms = " + this.getNumberOfDistinctTerms() +
         "\n");
