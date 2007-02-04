@@ -21,6 +21,7 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
   private PriorityQueue<DocumentTimeStruct> pq = null;
   private int[] termReductionList = null;
   private java.util.Random myRand = null;
+  private int totalNumberOfNonZeroDocumentCoordinates = 0;
   
   private boolean blockNewDocumentsAndTermReduction = false;
   
@@ -173,7 +174,7 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
           
           this.globalVectorSum.add(sv);
           this.globalSumOfSquaredLengths += sv.lengthSquared();
-          this.numNonZeroEntries += this.globalVectorSum.getPopCount();
+          this.numNonZeroEntries += sv.getPopCount();
           
           ++numDocumentsAdded;
           
@@ -185,12 +186,12 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
       }
     }
     
-    System.out.println("Number of documents = " +
-        this.getNumberOfDocuments());
-    System.out.println("Number of unique terms = " +
-        this.getNumberOfDistinctTerms());
-    System.out.println("Number of total terms = " +
-        this.getNumberOfTerms());
+//    System.out.println("Number of documents = " +
+//        this.getNumberOfDocuments());
+//    System.out.println("Number of unique terms = " +
+//        this.getNumberOfDistinctTerms());
+//    System.out.println("Number of total terms = " +
+//        this.getNumberOfTerms());
     
     return numDocumentsAdded;
   }
@@ -213,6 +214,11 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
    */
   public int getNumberOfNonZeroEntries() {
     return this.numNonZeroEntries;
+  }
+  
+  public double getGlobalSparsity() {
+    return (1.0 * this.numNonZeroEntries) / 
+        (1.0 * this.getNumberOfDistinctTerms() * this.getNumberOfDocuments());
   }
   
   /**
@@ -487,7 +493,7 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
       System.out.println("Added document to EXISTING cluster #" +
           bestClusterIdx);
     } else { // this was a bad fit for all clusters
-      BirchCluster bc = new BirchCluster();
+      BirchCluster bc = new BirchCluster(this.getNumberOfDistinctTerms());
       bc.addDocument(this, doc);
       // These next two lines should be atomic.
       this.clusters.add(bc);
@@ -590,21 +596,24 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
   public String toString() {
     StringBuffer sb = new StringBuffer("BirchKmeans Object Info\n");
   
-    sb.append("# of documents = " + this.getNumberOfDocuments() + "\n");
+    sb.append("# of documents      = " + this.getNumberOfDocuments() + "\n");
     sb.append("# of distinct terms = " + this.getNumberOfDistinctTerms() +
         "\n");
-    sb.append("# of total terms = " + this.getNumberOfTerms() + "\n");
+    sb.append("# of total terms    = " + this.getNumberOfTerms() + "\n");
+    sb.append("Global Sparsity     = " + this.getGlobalSparsity() + "\n");
     sb.append(this.clusterOptions);
     
     Iterator<BirchCluster> itr = this.clusters.iterator();
    
     double avgQuality = 0.0;
     double avgClusterSize = 0.0;
-   
+    double avgSparsity = 0.0;
+    
     while(itr.hasNext()){
       BirchCluster bc = itr.next();
       avgQuality += bc.getQuality();
       avgClusterSize += bc.getNumberOfDocuments();
+      avgSparsity += bc.getSparsity();
       sb.append(bc.toString());
     }
     
@@ -612,6 +621,8 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
         avgQuality / this.clusters.size() + "\n");
     sb.append("Average # of documents per cluster = " + 
         avgClusterSize / this.clusters.size() + "\n");
+    sb.append("Average sparsity of each cluster = " + 
+        avgSparsity / this.clusters.size());
     sb.append("Total number of clusters = " + this.clusters.size() + "\n");
     sb.append("Global Quality = " + this.getGlobalQuality() + "\n");
     

@@ -9,16 +9,18 @@ public class BirchCluster {
   private static final long serialVersionUID = 1234567890L;
   private SparseVector s = null;
   private double sumSquaredLengths = 0.0;
+  private int dimensionSize = 0;
   private int numberOfDocuments = 0;
   private double cachedQuality = 0.0;
   private ArrayList<String> includedFiles = null;
 
-  public BirchCluster() {
+  public BirchCluster(int numDistinctTerms) {
     this.s = new SparseVector();
     this.sumSquaredLengths = 0D;
     this.numberOfDocuments = 0;
     this.cachedQuality = 0.0;
     this.includedFiles = new ArrayList<String>();
+    this.dimensionSize = numDistinctTerms;
   }
 
   public double getQuality() {
@@ -67,6 +69,7 @@ public class BirchCluster {
 
     this.numberOfDocuments++;
     this.s.add(normalizedVector);
+
     this.sumSquaredLengths += normalizedVector.lengthSquared();
     this.cachedQuality = newQuality;
     this.includedFiles.add(doc.getFilename());
@@ -93,6 +96,7 @@ public class BirchCluster {
     
     this.numberOfDocuments++;
     this.s.add(normalizedVector);
+    
     this.sumSquaredLengths += normalizedVector.lengthSquared();
     this.cachedQuality = newQuality;
 
@@ -119,7 +123,17 @@ public class BirchCluster {
     sb.append("Birch Cluster Statistics\n");
     sb.append("Number of Documents: " + this.getNumberOfDocuments() + "\n");
     sb.append("Cluster Quality:     " + this.getQuality() + "\n");
+    sb.append("Cluster Sparsity:    " + this.getSparsity() + "\n");
     return sb.toString();
+  }
+  
+  public int getNumberOfNonZeroElementsInSummaryVector() {
+    return this.s.getPopCount();
+  }
+  
+  public double getSparsity() {
+    return (1.0 * this.getNumberOfNonZeroElementsInSummaryVector()) / 
+        (double)this.dimensionSize;
   }
   
   public static BirchCluster deserializeBirchKmeans(String filename) 
