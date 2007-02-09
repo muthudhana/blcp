@@ -222,7 +222,7 @@ public class Driver {
         break;
       case BUILD_DICTIONARY:
         if (driver.input == null || driver.output == null ||
-            driver.bkmInputPath == null || driver.bkmOutputPath == null) {
+            /* driver.bkmInputPath == null || */ driver.bkmOutputPath == null) {
           System.out.println(
             "Invalid options for building the global dictionary!");
           System.exit(-1);
@@ -232,6 +232,12 @@ public class Driver {
         
         // See if driver.bkmPath points to an existing BirchKmeans object
         // if it does, load it (we'll just update it), otherwise make a new one.
+        
+        // We don't care if this errors out, because we'll make a new
+        // BKM anyway.
+        if (driver.bkmInputPath == null) {
+          driver.bkmInputPath = "";
+        }
         
         try {
           bkm = BirchKmeans.deserializeBirchKmeans(driver.bkmInputPath);

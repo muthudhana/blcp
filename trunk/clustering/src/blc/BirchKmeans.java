@@ -47,6 +47,17 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
     return this.clusterOptions;
   }
   
+  /**
+   * Returns the total number of unique terms in the collection after stemming.
+   */
+  public int getNumberOfDistinctTerms() {
+    if (this.termReductionList != null) {
+      return this.termReductionList.length;
+    } else {
+      return super.getNumberOfDistinctTerms();
+    }
+  }
+  
   public void setClusterOptions(BirchClusterOptions bc) throws Exception {
     if (this.blockNewDocumentsAndTermReduction == true) {
       // useGlobalDictionaryAndBuildNormalizedVectors has been called.
@@ -639,12 +650,14 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
     double avgQuality = 0.0;
     double avgClusterSize = 0.0;
     double avgSparsity = 0.0;
+    int popCountSum = 0;
     
     while(itr.hasNext()){
       BirchCluster bc = itr.next();
       avgQuality += bc.getQuality();
       avgClusterSize += bc.getNumberOfDocuments();
       avgSparsity += bc.getSparsity();
+      popCountSum += bc.getNumberOfNonZeroElementsInSummaryVector();
       sb.append("\n" + bc.toString());
     }
     
@@ -663,6 +676,9 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
         avgClusterSize / this.clusters.size() + "\n");
     sb.append("Average sparsity of each cluster = " + 
         avgSparsity / this.clusters.size() + "\n");
+    sb.append("Sparsity of cluster set = " +
+        (1.0 * popCountSum)/(this.clusters.size() * 
+        this.getNumberOfDistinctTerms()) + "\n");
     sb.append("Total number of clusters = " + this.clusters.size() + "\n");
     sb.append("Global Quality = " + this.getGlobalQuality() + "\n");
     
