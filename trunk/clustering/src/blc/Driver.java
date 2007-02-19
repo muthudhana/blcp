@@ -6,22 +6,22 @@ import clusterbase.*;
 
 /**
  * Basic Usage Notes: 
- *
+ * 
  * Create a Birch Cluster Options object and save to a file:
- * java -jar "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\dist\Clustering.jar" -O -s "c:\go.bco" -r TIMESTAMP_FORWARD -l 2500 -a GREEDY_ALLOCATION -c 0.8 -m 100
- *
+ * java -jar "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\dist\Clustering.jar" -O -s "c:\go.bco" -r TIMESTAMP_FORWARD -l 2500 -a GREEDY_ALLOCATION_FORWARD -c 0.8 -m 100
+ * 
  * Print out the options stored in a saved Birch Cluster Options object:
  * java -jar "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\dist\Clustering.jar" -P -s "c:\go.bco"
- *
+ * 
  * Build the serialized documents:
  * java -jar "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\dist\Clustering.jar" -B -o c:\corpus\serialized\ -i c:\corpus\src -x "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\stopList.txt"
  * 
  * Take serialized documents, and build a BirchKmeans global dictionary and required statistics for clustering from them:
  * java -jar "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\dist\Clustering.jar" -D -i c:\corpus\serialized\ -o c:\corpus\serialized\ -b c:\corpus\bkm.dat 
- *
+ * 
  * Take the serialized phase 2 documents from the -D operation and the corresponding BirchKmeans object and cluster them:
  * java -jar "C:\Documents and Settings\mike\My Documents\Java Projects\clustering\dist\Clustering.jar" -C -i c:\corpus\serialized\ -o c:\corpus\serialized\ -s c:\go.bco -b c:\corpus\bkm.dat
-*/
+ */
 
 enum DriverAction {
   NOTHING,
@@ -163,9 +163,12 @@ public class Driver {
           break;
         case 'a':
           String a = opts.getOptarg();
-          if (a.equalsIgnoreCase("GREEDY_ALLOCATION")) {
+          if (a.equalsIgnoreCase("GREEDY_ALLOCATION_FORWARD")) {
             driver.clusterOptions.setClusteringApproach(
-              ClusteringApproach.GREEDY_ALLOCATION);
+              ClusteringApproach.GREEDY_ALLOCATION_FORWARD);
+          } else if (a.equalsIgnoreCase("GREEDY_ALLOCATION_BACKWARD")){
+            driver.clusterOptions.setClusteringApproach(
+              ClusteringApproach.GREEDY_ALLOCATION_BACKWARD);
           } else if (a.equalsIgnoreCase("BEST_FIT_ALLOCATION")) {
             driver.clusterOptions.setClusteringApproach(
               ClusteringApproach.BEST_FIT_ALLOCATION);

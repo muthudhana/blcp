@@ -17,7 +17,8 @@ enum TermReductionApproach implements Serializable {
 
 enum ClusteringApproach implements Serializable {
     NOTHING,
-    GREEDY_ALLOCATION,
+    GREEDY_ALLOCATION_FORWARD,
+    GREEDY_ALLOCATION_BACKWARD,
     BEST_FIT_ALLOCATION,
     REASONABLE_EFFORT_FORWARD,
     REASONABLE_EFFORT_BACKWARD
