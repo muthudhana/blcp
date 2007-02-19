@@ -439,8 +439,28 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
           }
         }
         break;
-      case GREEDY_ALLOCATION:
+      case GREEDY_ALLOCATION_FORWARD:
         for (int i = 0; i < this.clusters.size(); ++i) {
+          BirchCluster c = this.clusters.get(i);
+          if ((c.getNumberOfDocuments() + 1) > maxClusterSize) {
+            continue;
+          }
+          
+          double proposedChangeInQuality = c.calculateChangeInQuality(
+              this.getNormalizedDocumentVector(doc));
+          double currentQuality = c.getQuality();
+          double newQuality = proposedChangeInQuality + currentQuality;
+          
+          if (newQuality < upperQualityBound * (c.getNumberOfDocuments() + 1)) {
+            bestClusterIdx = i;
+            qualityDeltaForBestCluster = proposedChangeInQuality;
+            qualityForBestCluster = newQuality;
+            break; // we are greedy, first match wins
+          }
+        }        
+        break;
+      case GREEDY_ALLOCATION_BACKWARD:
+        for (int i = this.clusters.size() - 1; i >= 0; --i) {
           BirchCluster c = this.clusters.get(i);
           if ((c.getNumberOfDocuments() + 1) > maxClusterSize) {
             continue;
