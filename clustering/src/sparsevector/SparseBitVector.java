@@ -10,6 +10,7 @@
 package sparsevector;
 import java.util.*;
 import java.io.*;
+import gnu.trove.*;
 
 
 /**
@@ -20,12 +21,12 @@ public class SparseBitVector implements Serializable {
 
   private int globalPopCount = 0;
   // private SkipList bitVector = null;
-  private Hashtable<Long, Long> bitVector = null;
+  private TLongLongHashMap bitVector = null;
 
   /** Creates a new instance of SparseBitVector */
   public SparseBitVector() {
     // this.bitVector = new SkipList(1000);
-    this.bitVector = new Hashtable<Long, Long>();
+    this.bitVector = new TLongLongHashMap();
   }
 
   public boolean isBitSet (long bitNum) {
@@ -33,10 +34,10 @@ public class SparseBitVector implements Serializable {
     int offsetInBucket = (int) (bitNum % 32L);
 
     // long result = this.bitVector.search(bucketNum);
-    Long result = this.bitVector.get (bucketNum);
+    long result = this.bitVector.get (bucketNum);
 
     //if(result == SkipList.NOT_FOUND){
-    if (result == null) {
+    if (result == 0L) {
       return (false);
     } else if ( (result & (1L << offsetInBucket) ) != 0) {
       return (true);
@@ -50,12 +51,7 @@ public class SparseBitVector implements Serializable {
     int offsetInBucket = (int) (bitNum % 32L);
 
     // long result = this.bitVector.search(bucketNum);
-    Long result = this.bitVector.get (bucketNum);
-
-    // if(result == SkipList.NOT_FOUND){
-    if (result == null) {
-      result = 0L;
-    }
+    long result = this.bitVector.get (bucketNum);
 
     if ( (result & (1L << offsetInBucket) ) == 0) {
       ++this.globalPopCount; // count this bit if we haven't already
@@ -75,11 +71,6 @@ public class SparseBitVector implements Serializable {
 
     // long result = this.bitVector.search(bucketNum);
     Long result = this.bitVector.get (bucketNum);
-
-    // if(result == SkipList.NOT_FOUND){
-    if (result == null) {
-      result = 0L;
-    }
 
     if ( (result & (1L << offsetInBucket) ) != 0) {
       // Remove this key
