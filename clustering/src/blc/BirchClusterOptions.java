@@ -213,4 +213,30 @@ public class BirchClusterOptions implements Serializable {
     sb.append("Max Cluster Size: " + this.maxClusterSize + "\n");
     return sb.toString();
   }
+  
+  public String getCSV() {
+    StringBuffer sb = new StringBuffer();
+    sb.append(this.clusteringOrder + ",");
+    sb.append(this.termReductionApproach + ",");
+    if (this.termReductionApproach == TermReductionApproach.USE_TERM_REDUCTION) 
+        {
+      sb.append(this.termLimit + ",");
+    } else {
+      sb.append(",");
+    }
+    sb.append(this.clusteringApproach + ",");
+    if (this.clusteringApproach == 
+        ClusteringApproach.REASONABLE_EFFORT_FORWARD || 
+        this.clusteringApproach == 
+        ClusteringApproach.REASONABLE_EFFORT_BACKWARD) {
+      sb.append(this.maxTrialsForReasonableEffort + ",");
+    } else {
+      sb.append(",");
+    }
+    
+    sb.append(this.capacityFraction + ",");
+    sb.append(this.maxClusterSize + ",");
+    
+    return sb.toString();
+  }
 }

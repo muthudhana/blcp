@@ -2,7 +2,9 @@ package blc;
 
 import gnu.getopt.*;
 import java.io.*;
+import java.util.Date;
 import clusterbase.*;
+
 
 /**
  * Basic Usage Notes: 
@@ -219,6 +221,9 @@ public class Driver {
       }
     }
     
+    long startTime = new Date().getTime();
+    long endTime = 0;
+    
     switch (driver.driverAction) {
       case NOTHING:
         System.out.println("No valid action selected!");
@@ -377,9 +382,18 @@ public class Driver {
           }
         } else if (driver.driverAction == DriverAction.CLUSTER) {
           birch.clusterDocuments();
+          endTime = new Date().getTime();
           System.out.println(birch);
+          System.out.println("\n\n" + birch.getCSV(startTime, endTime));
         }
         break;
     }
+    
+    if (endTime == 0L) {
+      endTime = new Date().getTime();
+    }
+    
+    long totalTime = endTime - startTime;
+    System.out.println("Total processing time: " + totalTime + " ms");
   }
 }

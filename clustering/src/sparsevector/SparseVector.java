@@ -17,8 +17,8 @@ import java.io.*;
  * @author mike
  */
 // public class SparseVector extends SparseArray<Double> implements Serializable{
-public class SparseVector extends SparseArrayDouble implements Serializable {
 
+public class SparseVector extends SparseArrayDouble implements Serializable {
   private static final long serialVersionUID = 1370252991810615959L;
   private double sumSquareCoordinates = 0.0;
 //    private int popCount = 0;
@@ -170,9 +170,7 @@ public class SparseVector extends SparseArrayDouble implements Serializable {
         dotProduct += this.get (rkeys[i]) * rvalue.get (rkeys[i]);
       }
     }
-
     return (dotProduct);
-
   }
 
   public void set (int key, double value) {

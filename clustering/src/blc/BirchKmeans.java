@@ -206,14 +206,6 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
         }
       }
     }
-    
-//    System.out.println("Number of documents = " +
-//        this.getNumberOfDocuments());
-//    System.out.println("Number of unique terms = " +
-//        this.getNumberOfDistinctTerms());
-//    System.out.println("Number of total terms = " +
-//        this.getNumberOfTerms());
-    
     return numDocumentsAdded;
   }
   
@@ -701,7 +693,45 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
         this.getNumberOfDistinctTerms()) + "\n");
     sb.append("Total number of clusters = " + this.clusters.size() + "\n");
     sb.append("Global Quality = " + this.getGlobalQuality() + "\n");
+    return sb.toString();
+  }
+  
+  public String getCSV(long startTime, long endTime) {
+    StringBuffer sb = new StringBuffer();
     
+    Iterator<BirchCluster> itr = this.clusters.iterator();
+   
+    double avgQuality = 0.0;
+    double avgClusterSize = 0.0;
+    double avgSparsity = 0.0;
+    int popCountSum = 0;
+    
+    while(itr.hasNext()){
+      BirchCluster bc = itr.next();
+      avgQuality += bc.getQuality();
+      avgClusterSize += bc.getNumberOfDocuments();
+      avgSparsity += bc.getSparsity();
+      popCountSum += bc.getNumberOfNonZeroElementsInSummaryVector();
+    }
+    
+    sb.append("CSV,");
+    sb.append(this.getNumberOfDocuments() + ",");
+    sb.append(this.getNumberOfDistinctTerms() + ",");
+    sb.append(this.getNumberOfTerms() + ",");
+    sb.append(this.getGlobalSparsity() + ",");
+    sb.append(this.clusterOptions.getCSV());
+    double temp = avgQuality / this.clusters.size();
+    sb.append(temp + ",");
+    temp = avgClusterSize / this.clusters.size();
+    sb.append(temp + ",");
+    temp = avgSparsity / this.clusters.size();
+    sb.append(temp + ",");
+    temp = (1.0 * popCountSum)/
+        (this.clusters.size() *  this.getNumberOfDistinctTerms());
+    sb.append(temp + ",");
+    sb.append(this.clusters.size() + ",");
+    sb.append(this.getGlobalQuality() + ",");
+    sb.append(endTime - startTime);
     return sb.toString();
   }
 
