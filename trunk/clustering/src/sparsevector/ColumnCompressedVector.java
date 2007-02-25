@@ -159,12 +159,21 @@ public class ColumnCompressedVector implements Serializable {
   public int[] getIndicies() {
     return this.rowIndex.toNativeArray();
   }
+  
+  public int[] getIndiciesSorted() {
+    return this.getIndicies();
+  }
 
   /**
    * Returns the number of rows in this vector if it were a real vector.
    */
   public int size() {
     return (this.maxElement + 1);
+  }
+  
+  // Here to keep SparseVector objects based on ColumnCompressedVectors happy
+  public void remove(int key) {
+    this.set(key, 0D);
   }
 
   public void set (int elementNum, double value) {
