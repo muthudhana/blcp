@@ -224,7 +224,7 @@ public class Document implements Serializable {
     double sum = documentVector.length();
 
     if (sum == 0) {
-      sum = 1;  // Handle empty documents! Keep well division defined! :-)
+      sum = 1;  // Handle empty documents! Keep division well defined! :-)
     }
 
     double Nj = 1;
