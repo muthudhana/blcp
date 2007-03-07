@@ -27,10 +27,10 @@ public class DocumentTimeStruct implements Comparable, Serializable {
 
   public int compareTo(Object obj) {
     DocumentTimeStruct t = (DocumentTimeStruct) obj;
-    if (this.timestamp < t.timestamp) {
+    if (this.timestamp < t.getTimestamp()) {
       return -1;
     }
-    if (this.timestamp == t.timestamp) {
+    if (this.timestamp == t.getTimestamp()) {
       return 0;
     }
     // t.timestamp > this.timestamp.
