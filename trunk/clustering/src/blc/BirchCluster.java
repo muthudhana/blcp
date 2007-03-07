@@ -27,48 +27,49 @@ public class BirchCluster {
     return this.cachedQuality;
   }
 
-  public double calculateChangeInQuality(SparseVector a) {
-    double currentQuality = this.getQuality();
-    SparseVector val = new SparseVector(this.s);
-    val.scalarMultiply(this.getNumberOfDocuments());
-    val.add(a);
-    val.scalarDivide(1 + this.getNumberOfDocuments());
-    val.subtract(a);
-    double partA = val.lengthSquared();
-    val.add(a);
-    val.subtract(this.s);
-    double partB = this.getNumberOfDocuments() * val.lengthSquared();
-    System.out.println("Change in quality = " + (partA + partB));
-    return partA + partB;
-  }
-  
-//  public double calculateChangeInQualityOld(SparseVector normalizedVector) {
-//    SparseVector docVec = normalizedVector;
-//    SparseVector sCopy = this.s;
-//
-//    double newQuality = 0.0;
-//
-//    sCopy.scalarDivide(this.numberOfDocuments);
-//    sCopy.subtract(docVec);
-//
-//    if (this.numberOfDocuments == 0) {
-//      newQuality = 0;
-//    } else {
-//      newQuality = (1.0 * this.numberOfDocuments) / 
-//          (1.0 * (this.numberOfDocuments + 1));
-//      newQuality *= sCopy.lengthSquared();
-//    }
-//
-//    /* Undo our changes to this.s  since sCopy is not really a copy!
-//     * This should help memory usage since we don't actually need to
-//     * allocate a new object, we can perform some algebra to put back
-//     * what we changed.
-//     */
-//    sCopy.add (docVec);
-//    sCopy.scalarMultiply (this.numberOfDocuments);
-//
-//    return newQuality;
+//  public double calculateChangeInQuality(SparseVector a) {
+//    double currentQuality = this.getQuality();
+//    SparseVector val = new SparseVector(this.s);
+//    val.scalarMultiply(this.getNumberOfDocuments());
+//    val.add(a);
+//    val.scalarDivide(1 + this.getNumberOfDocuments());
+//    val.subtract(a);
+//    double partA = val.lengthSquared();
+//    val.add(a);
+//    val.subtract(this.s);
+//    double partB = this.getNumberOfDocuments() * val.lengthSquared();
+//    System.out.println("Change in quality NEW = " + (partA + partB));
+//    System.out.println("Change in quality OLD = " + this.calculateChangeInQualityOld(a));
+//    return partA + partB;
 //  }
+  
+  public double calculateChangeInQuality(SparseVector normalizedVector) {
+    SparseVector docVec = normalizedVector;
+    SparseVector sCopy = this.s;
+
+    double newQuality = 0.0;
+
+    sCopy.scalarDivide(this.numberOfDocuments);
+    sCopy.subtract(docVec);
+
+    if (this.numberOfDocuments == 0) {
+      newQuality = 0;
+    } else {
+      newQuality = (1.0 * this.numberOfDocuments) / 
+          (1.0 * (this.numberOfDocuments + 1));
+      newQuality *= sCopy.lengthSquared();
+    }
+
+    /* Undo our changes to this.s  since sCopy is not really a copy!
+     * This should help memory usage since we don't actually need to
+     * allocate a new object, we can perform some algebra to put back
+     * what we changed.
+     */
+    sCopy.add (docVec);
+    sCopy.scalarMultiply (this.numberOfDocuments);
+
+    return newQuality;
+  }
 
   /***
    * Adds the document in the vector space model provided as parameters
