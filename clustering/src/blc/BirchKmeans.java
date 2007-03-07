@@ -408,6 +408,8 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
     if (this.beVerbose()) {
       System.out.println("Pop Count of Doc Vec = " +
           this.getNormalizedDocumentVector(doc).getPopCount());
+      System.out.println("Length of normalized Doc Vec = " +
+          this.getNormalizedDocumentVector(doc).length());
     }
     
     switch (this.clusterOptions.getClusteringApproach()) {
