@@ -735,6 +735,47 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
     return sb.toString();
   }
 
+  public String getSQL(long startTime, long endTime) {
+    StringBuffer sb = new StringBuffer();
+    
+    Iterator<BirchCluster> itr = this.clusters.iterator();
+   
+    double avgQuality = 0.0;
+    double avgClusterSize = 0.0;
+    double avgSparsity = 0.0;
+    int popCountSum = 0;
+    
+    while(itr.hasNext()){
+      BirchCluster bc = itr.next();
+      avgQuality += bc.getQuality();
+      avgClusterSize += bc.getNumberOfDocuments();
+      avgSparsity += bc.getSparsity();
+      popCountSum += bc.getNumberOfNonZeroElementsInSummaryVector();
+    }
+    
+    sb.append("INSERT INTO results SET ");
+    sb.append("numDocs = " + this.getNumberOfDocuments() + ", ");
+    sb.append("numDistinctTerms = " + this.getNumberOfDistinctTerms() + ", ");
+    sb.append("numTerms = " + this.getNumberOfTerms() + ", ");
+    sb.append("globalSparsity = " + this.getGlobalSparsity() + ", ");
+    sb.append(this.clusterOptions.getSQL());
+    double temp = avgQuality / this.clusters.size();
+    sb.append("avgClusterQuality = " + temp + ", ");
+    temp = avgClusterSize / this.clusters.size();
+    sb.append("avgNumberOfDocsPerCluster = " + temp + ", ");
+    temp = avgSparsity / this.clusters.size();
+    sb.append("avgClusterSparsity = " + temp + ", ");
+    temp = (1.0 * popCountSum)/
+        (this.clusters.size() *  this.getNumberOfDistinctTerms());
+    sb.append("sparsityOfClusterSet = " + temp + ", ");
+    sb.append("numberOfClusters = " + this.clusters.size() + ", ");
+    sb.append("globalQuality = " + this.getGlobalQuality() + ", ");
+    sb.append("processingTime = ");
+    sb.append(endTime - startTime);
+    sb.append(";");
+    return sb.toString();
+  }
+  
   public boolean setVerboseOuput(boolean verboseOutputEnabled) {
     this.verboseOutput = verboseOutputEnabled;
     return this.verboseOutput;

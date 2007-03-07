@@ -385,6 +385,7 @@ public class Driver {
           endTime = new Date().getTime();
           System.out.println(birch);
           System.out.println("\n\n" + birch.getCSV(startTime, endTime));
+          System.out.println(birch.getSQL(startTime, endTime));
         }
         break;
     }

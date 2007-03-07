@@ -239,4 +239,28 @@ public class BirchClusterOptions implements Serializable {
     
     return sb.toString();
   }
+  
+  public String getSQL() {
+    StringBuffer sb = new StringBuffer();
+    sb.append("clusteringOrder = \"" + this.clusteringOrder + "\", ");
+    sb.append("termReductionApproach = \"" + this.termReductionApproach + "\", ");
+    if (this.termReductionApproach == TermReductionApproach.USE_TERM_REDUCTION) 
+        {
+      sb.append("termLimit = " + this.termLimit + ", ");
+    }
+    sb.append("clusteringApproach = \"" + this.clusteringApproach + "\", ");
+    if (this.clusteringApproach == 
+        ClusteringApproach.REASONABLE_EFFORT_FORWARD || 
+        this.clusteringApproach == 
+        ClusteringApproach.REASONABLE_EFFORT_BACKWARD) {
+      sb.append("maxTrialsForReasonableEffort = " + 
+          this.maxTrialsForReasonableEffort + ", ");
+    } 
+    
+    sb.append("capacityFraction = " + this.capacityFraction + ", ");
+    sb.append("maxClusterSize = " + this.maxClusterSize + ", ");
+    
+    return sb.toString();
+  }
+  
 }
