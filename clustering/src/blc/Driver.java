@@ -32,7 +32,8 @@ enum DriverAction {
   SET_OPTIONS,
   SHOW_OPTIONS,
   NORMALIZE_VECTORS,
-  CLUSTER
+  CLUSTER,
+  CLUSTER_IN_MEMORY
 }
 
 public class Driver {
@@ -85,7 +86,7 @@ public class Driver {
     String arg;
     int c = -1;
     
-    Getopt opts = new Getopt("blcp", args, "BOCPDNi:o:s:b:k:r:l:a:t:c:m:x:v");
+    Getopt opts = new Getopt("blcp", args, "BOCPDNMi:o:s:b:k:r:l:a:t:c:m:x:v");
     
     while ((c = opts.getopt()) != -1) {
       switch (c) {
@@ -106,6 +107,9 @@ public class Driver {
           break;
         case 'N':
           driver.driverAction = DriverAction.NORMALIZE_VECTORS;
+          break;
+        case 'M':
+          driver.driverAction = DriverAction.CLUSTER_IN_MEMORY;
           break;
         case 'i':
           if (opts.getOptarg().length() > 0) {
@@ -317,6 +321,7 @@ public class Driver {
         break;
       case NORMALIZE_VECTORS:
       case CLUSTER:
+      case CLUSTER_IN_MEMORY:
         BirchClusterOptions options = null;
         if (driver.clusterOptionsPath != null) {
           try {
@@ -382,6 +387,12 @@ public class Driver {
           }
         } else if (driver.driverAction == DriverAction.CLUSTER) {
           birch.clusterDocuments();
+          endTime = new Date().getTime();
+          System.out.println(birch);
+          System.out.println("\n\n" + birch.getCSV(startTime, endTime));
+          System.out.println(birch.getSQL(startTime, endTime));
+        } else if (driver.driverAction == DriverAction.CLUSTER_IN_MEMORY) {
+          birch.clusterDocumentsInMemory();
           endTime = new Date().getTime();
           System.out.println(birch);
           System.out.println("\n\n" + birch.getCSV(startTime, endTime));
