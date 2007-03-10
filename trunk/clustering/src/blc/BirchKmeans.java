@@ -280,6 +280,126 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
    * been built, this will delete them, and start the process of clustering
    * from scratch.  If not, it will make clusters for the first time.
    */
+  public int clusterDocumentsInMemory() {
+    return this.clusterDocumentsInMemory(true);
+  }
+  
+  public int clusterDocumentsInMemory(boolean startOver) {
+    if (this.clusterOptions == null) {
+      return -1;
+    }
+    
+    if (this.clusters != null && startOver == true) {
+      this.clusters = new ArrayList<BirchCluster>();
+    }
+    
+    // Load all docs into Memory
+    Hashtable<String, Document> docsInMemory = new Hashtable<String, Document>();
+    while (pq.peek() != null) {
+      String docName = pq.poll().getFilename();
+      if (this.beVerbose()) {
+        System.out.println(pq.size() + " documents remaining to be loaded " +
+          "into memory");
+      }
+      Document doc = null;
+      try {
+        doc = Document.deserializeDocument(docName);
+      } catch (Exception ex) {
+        ex.printStackTrace();
+        System.exit(-1);
+      }
+      docsInMemory.put(docName, doc); 
+    }
+    
+    double upperQualityBound = this.clusterOptions.getCapacityFraction() *
+        (this.getGlobalQuality() / this.getNumberOfDocuments());
+    
+    if (this.beVerbose()) {
+      System.out.println("Global quality = " + this.getGlobalQuality() );
+      System.out.println("num docs = " + this.numberOfDocuments);
+      System.out.println("upper = " + upperQualityBound + "\n");
+    }
+
+    if (this.clusterOptions.getClusteringOrder() == ClusteringOrder.RANDOM) {
+      // reseed in case we are in a serialized object.
+      this.myRand.setSeed((new java.util.Date()).getTime());
+      ArrayList<DocumentTimeStruct> al = new ArrayList<DocumentTimeStruct>(pq);
+      
+      if (this.beVerbose()) {
+        System.out.println("Al size " + al.size());
+      }
+      while (al.size() > 0) {
+        int randIndex = this.myRand.nextInt(al.size());
+        Document doc = docsInMemory.get(al.get(randIndex).getFilename());
+        al.remove(randIndex);
+        
+        if (this.beVerbose()) {
+          System.out.println("Clustering document: " + doc.getFilename() );
+          System.out.println("Timestamp: " + doc.getTimestamp() );
+          System.out.println("Documents remaining: " + al.size());
+        }
+        this.clusterDocument(doc);
+      }
+      return this.clusters.size();
+    } else if (this.clusterOptions.getClusteringOrder() ==
+        ClusteringOrder.TIMESTAMP_FORWARD) {
+      while (pq.size() > 0) {
+        DocumentTimeStruct dts = pq.poll();
+        Document doc = docsInMemory.get(dts.getFilename());
+        
+        if (this.beVerbose()) {
+          System.out.println("Clustering document: " + doc.getFilename());
+          System.out.println("Timestamp: " + doc.getTimestamp());
+          System.out.println("Documents remaining: " + pq.size());
+        }
+        
+        this.clusterDocument(doc);
+      }
+      return this.clusters.size();
+    } else if (this.clusterOptions.getClusteringOrder() ==
+        ClusteringOrder.TIMESTAMP_REVERSE) {
+      ArrayList<DocumentTimeStruct> al = new ArrayList<DocumentTimeStruct>();
+      
+      // Convert the priority queue into a sorted array list.
+      while (pq.peek() != null) {
+        al.add(pq.poll());
+      }
+      
+      // Since these are sorted in natural temporal ordering, we now reverse
+      // the entire array in place.
+      for (int i = 0; i < Math.floor(al.size() / 2); ++i) {
+        int farIdx = al.size() - (i + 1);
+        DocumentTimeStruct tmp = al.get(farIdx);
+        al.set(farIdx, al.get(i));
+        al.set(i, tmp);
+      }
+      
+      Iterator<DocumentTimeStruct> itr = al.iterator();
+      int docsRemaining = al.size();
+      
+      while (itr.hasNext()) {
+        DocumentTimeStruct dts = itr.next();
+        Document doc = docsInMemory.get(dts.getFilename());
+        
+        if (this.beVerbose()) {
+          System.out.println("Clustering document: " + doc.getFilename() );
+          System.out.println("Timestamp: " + doc.getTimestamp() );
+          System.out.println("Documents remaining: " + --docsRemaining);
+        } 
+        this.clusterDocument(doc);
+      }
+      return this.clusters.size();
+    }
+    
+    // Unreachable in theory . =]
+    return -1;
+  }
+  
+  /**
+   * Overloaded form of clusterDocuments(boolean). If clusters have already
+   * been built, this will delete them, and start the process of clustering
+   * from scratch.  If not, it will make clusters for the first time.
+   */
   public int clusterDocuments() {
     return this.clusterDocuments(true);
   }
@@ -329,6 +449,7 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
         if (this.beVerbose()) {
           System.out.println("Clustering document: " + doc.getFilename() );
           System.out.println("Timestamp: " + doc.getTimestamp() );
+          System.out.println("Documents remaining: " + al.size());
         }
         this.clusterDocument(doc);
       }
@@ -348,6 +469,7 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
         if (this.beVerbose()) {
           System.out.println("Clustering document: " + doc.getFilename());
           System.out.println("Timestamp: " + doc.getTimestamp());
+          System.out.println("Documents remaining: " + pq.size());
         }
         
         this.clusterDocument(doc);
@@ -372,6 +494,7 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
       }
       
       Iterator<DocumentTimeStruct> itr = al.iterator();
+      int docsRemaining = al.size();
       
       while (itr.hasNext()) {
         DocumentTimeStruct dts = itr.next();
@@ -385,6 +508,7 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
         if (this.beVerbose()) {
           System.out.println("Clustering document: " + doc.getFilename() );
           System.out.println("Timestamp: " + doc.getTimestamp() );
+          System.out.println("Documents remaining: " + --docsRemaining);
         }
         
         this.clusterDocument(doc);

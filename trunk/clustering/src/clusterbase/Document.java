@@ -253,11 +253,15 @@ public class Document implements Serializable {
   }
 
   public static Document deserializeDocument (String file) throws Exception {
+    int len = (int) (new File(file).length());
     FileInputStream fis = new FileInputStream(file);
-    ObjectInputStream ois = new ObjectInputStream(fis);
+    byte buf[] = new byte[len];
+    fis.read(buf);
+    fis.close();
+    ByteArrayInputStream bais = new ByteArrayInputStream(buf);
+    ObjectInputStream ois = new ObjectInputStream(bais);
     Document doc = (Document) ois.readObject();
     ois.close();
-    fis.close();
     return doc;
   }
 }
