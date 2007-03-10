@@ -157,6 +157,8 @@ public class BirchCluster {
     FileInputStream fis = new FileInputStream(filename);
     ObjectInputStream ois = new ObjectInputStream(fis);
     BirchCluster bc = (BirchCluster) ois.readObject();
+    ois.close();
+    fis.close();
     return bc;
   }
 }

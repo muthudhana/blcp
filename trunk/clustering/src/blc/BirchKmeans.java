@@ -725,6 +725,8 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
     FileInputStream fis = new FileInputStream(filename);
     ObjectInputStream ois = new ObjectInputStream(fis);
     BirchKmeans bkm = (BirchKmeans) ois.readObject();
+    ois.close();
+    fis.close();
     return bkm;
   }
   

@@ -189,6 +189,8 @@ public class BirchClusterOptions implements Serializable {
     FileInputStream fis = new FileInputStream(filename);
     ObjectInputStream ois = new ObjectInputStream(fis);
     BirchClusterOptions bco = (BirchClusterOptions) ois.readObject();
+    ois.close();
+    fis.close();
     return bco;
   }
   

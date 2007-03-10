@@ -257,11 +257,12 @@ public class Document implements Serializable {
     FileInputStream fis = new FileInputStream(file);
     byte buf[] = new byte[len];
     fis.read(buf);
-    fis.close();
     ByteArrayInputStream bais = new ByteArrayInputStream(buf);
     ObjectInputStream ois = new ObjectInputStream(bais);
     Document doc = (Document) ois.readObject();
     ois.close();
+    bais.close();
+    fis.close();
     return doc;
   }
 }
