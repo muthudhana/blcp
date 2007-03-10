@@ -294,12 +294,15 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
     }
     
     // Load all docs into Memory
-    Hashtable<String, Document> docsInMemory = new Hashtable<String, Document>();
-    while (pq.peek() != null) {
-      String docName = pq.poll().getFilename();
+    PriorityQueue<DocumentTimeStruct> pqCopy = 
+        new PriorityQueue<DocumentTimeStruct>(pq);
+    Hashtable<String, Document> docsInMemory = 
+        new Hashtable<String, Document>();
+    while (pqCopy.peek() != null) {
+      String docName = pqCopy.poll().getFilename();
       if (this.beVerbose()) {
-        System.out.println(pq.size() + " documents remaining to be loaded " +
-          "into memory");
+        System.out.println(pqCopy.size() + " documents remaining to be loaded " 
+            + "into memory");
       }
       Document doc = null;
       try {
@@ -310,6 +313,7 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
       }
       docsInMemory.put(docName, doc); 
     }
+    pqCopy = null; // Free up memory used by pcCopy
     
     double upperQualityBound = this.clusterOptions.getCapacityFraction() *
         (this.getGlobalQuality() / this.getNumberOfDocuments());
@@ -317,7 +321,11 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
     if (this.beVerbose()) {
       System.out.println("Global quality = " + this.getGlobalQuality() );
       System.out.println("num docs = " + this.numberOfDocuments);
-      System.out.println("upper = " + upperQualityBound + "\n");
+      System.out.println("upperQualityBound = " + upperQualityBound + "\n");
+      System.out.println("Clustering Order = " + 
+          this.clusterOptions.getClusteringOrder());
+      System.out.println("Clustering Approach = " + 
+          this.clusterOptions.getClusteringApproach());
     }
 
     if (this.clusterOptions.getClusteringOrder() == ClusteringOrder.RANDOM) {
