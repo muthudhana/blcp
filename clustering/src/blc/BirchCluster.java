@@ -132,6 +132,7 @@ public class BirchCluster {
     oos.writeObject(bc);
     oos.flush();
     oos.close();
+    fos.close();
   }
 
   public String toString() {
