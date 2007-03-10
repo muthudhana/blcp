@@ -718,6 +718,7 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
     oos.writeObject(bkm);
     oos.flush();
     oos.close();
+    fos.close();
   }
   
   public static BirchKmeans deserializeBirchKmeans(String filename)

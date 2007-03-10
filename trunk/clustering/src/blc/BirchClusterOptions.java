@@ -182,6 +182,7 @@ public class BirchClusterOptions implements Serializable {
     oos.writeObject(bco);
     oos.flush();
     oos.close();
+    fos.close();
   }
   
   public static BirchClusterOptions deserializeBirchClusterOptions(
