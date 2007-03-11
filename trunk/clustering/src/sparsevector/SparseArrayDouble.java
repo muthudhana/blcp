@@ -26,21 +26,26 @@ public class SparseArrayDouble implements Serializable {
   //  private SparseBitVector sb = null;
   private TIntDoubleHashMap ht = null;
   private int maxIndex = -1;
+  private int[] keyCache = null;
+  private boolean keyCacheDirty = true;
 
   public int[] getIndicies() {
-    int[] keys = this.ht.keys();
-    return (keys);
+    if (keyCacheDirty == true) {
+      this.keyCache = this.ht.keys();
+      Arrays.sort(this.keyCache);
+      this.keyCacheDirty = false;
+    }
+    return (this.keyCache);
   }
 
   public int[] getIndiciesSorted() {
-    int[] keys = this.getIndicies();
-    Arrays.sort (keys);
-    return (keys);
+    return(this.getIndicies());
   }
 
   public void set (int key, double value) {
     if ( key > maxIndex )
       maxIndex = key;
+    this.keyCacheDirty = true;
     ht.put ( key, value );
   }
 
@@ -49,6 +54,7 @@ public class SparseArrayDouble implements Serializable {
     if ( maxIndex == key ) {
       maxIndex = -1; // we'll calculate the new max index when needed
     }
+    this.keyCacheDirty = true;
     return true;
   }
 
