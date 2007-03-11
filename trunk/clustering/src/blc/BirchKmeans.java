@@ -345,6 +345,8 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
           System.out.println("Clustering document: " + doc.getFilename() );
           System.out.println("Timestamp: " + doc.getTimestamp() );
           System.out.println("Documents remaining: " + al.size());
+        } else if (al.size() % 1000 == 0) {
+          System.out.println("Documents remaining: " + al.size());
         }
         this.clusterDocument(doc);
       }
@@ -358,6 +360,8 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
         if (this.beVerbose()) {
           System.out.println("Clustering document: " + doc.getFilename());
           System.out.println("Timestamp: " + doc.getTimestamp());
+          System.out.println("Documents remaining: " + pq.size());
+        } else if (pq.size() % 1000 == 0) {
           System.out.println("Documents remaining: " + pq.size());
         }
         
@@ -393,7 +397,10 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
           System.out.println("Clustering document: " + doc.getFilename() );
           System.out.println("Timestamp: " + doc.getTimestamp() );
           System.out.println("Documents remaining: " + --docsRemaining);
-        } 
+        } else if (docsRemaining % 1000 == 0) {
+          System.out.println("Documents remaining: " + --docsRemaining);
+        }
+        
         this.clusterDocument(doc);
       }
       return this.clusters.size();
