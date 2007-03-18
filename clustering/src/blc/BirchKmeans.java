@@ -329,8 +329,8 @@ public class BirchKmeans extends ClusteringModel implements Serializable {
     }
 
     if (this.clusterOptions.getClusteringOrder() == ClusteringOrder.RANDOM) {
-      // reseed in case we are in a serialized object.
-      this.myRand.setSeed((new java.util.Date()).getTime());
+      // we want predictably random results so let's do this
+      this.myRand.setSeed(124958239691558337L);
       ArrayList<DocumentTimeStruct> al = new ArrayList<DocumentTimeStruct>(pq);
       
       if (this.beVerbose()) {
