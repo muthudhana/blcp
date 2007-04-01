@@ -1,20 +1,47 @@
+/*
+ * @(#)BirchCluster.java   04/01/07
+ * 
+ * Copyright (c) 2007 Michael Wiacek, <mike@iroot.net>
+ *
+ * All rights reserved.
+ *
+ */
+
+
+
 package blc;
 
 import clusterbase.Document;
-import java.util.*;
-import java.io.*;
+
 import sparsevector.SparseVector;
 
+import java.io.*;
+
+import java.util.*;
+
+/**
+ * Class description
+ *
+ *
+ * @version    Enter version here..., 04/01/07
+ * @author     Mike Wiacek
+ */
 public class BirchCluster {
   private static final long serialVersionUID = 1234567890L;
   private SparseVector s = null;
   private double sumSquaredLengths = 0.0;
-  private int dimensionSize = 0;
   private int numberOfDocuments = 0;
-  private double cachedQuality = 0.0;
   private ArrayList<String> includedFiles = null;
+  private int dimensionSize = 0;
+  private double cachedQuality = 0.0;
 
-  public BirchCluster(int numDistinctTerms) {
+  /**
+   * Constructs ...
+   *
+   *
+   * @param numDistinctTerms
+   */
+  public BirchCluster (int numDistinctTerms) {
     this.s = new SparseVector();
     this.sumSquaredLengths = 0D;
     this.numberOfDocuments = 0;
@@ -23,27 +50,97 @@ public class BirchCluster {
     this.dimensionSize = numDistinctTerms;
   }
 
-  public double getQuality() {
+  /**
+   * Adds the document in the vector space model provided as parameters
+   * to this BIRCH like cluster.  The new cluster quality is returned.
+   *
+   * Not thread safe
+   *
+   * @param vsm
+   * @param doc
+   *
+   * @return
+   */
+  public double addDocument (BirchKmeans vsm,
+                             Document doc) {
+    SparseVector normalizedVector = doc.getNormalizedVector(vsm);
+
+    double newQuality = this.calculateChangeInQuality(normalizedVector) +
+                        this.cachedQuality;
+
+    this.numberOfDocuments++;
+
+    this.s.add(normalizedVector);
+
+    this.sumSquaredLengths += normalizedVector.lengthSquared();
+    this.cachedQuality = newQuality;
+
+    this.includedFiles.add(doc.getFilename());
+
+    return this.cachedQuality;
+  }
+
+  /**
+   * Adds the document in the vector space model provided as parameters
+   * to this BIRCH like cluster.  This overloaded version allows the caller
+   * to specify the quality of the resulting cluster.  Make sure the caller
+   * calculates this value properly.  This will save several cycles by avoiding
+   * the penalty of calculating a new quality value, when the caller might have
+   * this information already available.
+   *
+   * Not thread safe
+   *
+   * @param vsm
+   * @param doc
+   * @param forcedNewQuality
+   *
+   * @return
+   */
+  public double addDocument (BirchKmeans vsm,
+                             Document doc,
+                             double forcedNewQuality) {
+
+    SparseVector normalizedVector = doc.getNormalizedVector(vsm);
+
+    double newQuality = forcedNewQuality;
+
+    this.numberOfDocuments++;
+
+    this.s.add(normalizedVector);
+
+    this.sumSquaredLengths += normalizedVector.lengthSquared();
+    this.cachedQuality = newQuality;
+
+    this.includedFiles.add(doc.getFilename());
+
     return this.cachedQuality;
   }
 
 //  public double calculateChangeInQuality(SparseVector a) {
-//    double currentQuality = this.getQuality();
-//    SparseVector val = new SparseVector(this.s);
-//    val.scalarMultiply(this.getNumberOfDocuments());
-//    val.add(a);
-//    val.scalarDivide(1 + this.getNumberOfDocuments());
-//    val.subtract(a);
-//    double partA = val.lengthSquared();
-//    val.add(a);
-//    val.subtract(this.s);
-//    double partB = this.getNumberOfDocuments() * val.lengthSquared();
-//    System.out.println("Change in quality NEW = " + (partA + partB));
-//    System.out.println("Change in quality OLD = " + this.calculateChangeInQualityOld(a));
-//    return partA + partB;
+//  double currentQuality = this.getQuality();
+//  SparseVector val = new SparseVector(this.s);
+//  val.scalarMultiply(this.getNumberOfDocuments());
+//  val.add(a);
+//  val.scalarDivide(1 + this.getNumberOfDocuments());
+//  val.subtract(a);
+//  double partA = val.lengthSquared();
+//  val.add(a);
+//  val.subtract(this.s);
+//  double partB = this.getNumberOfDocuments() * val.lengthSquared();
+//  System.out.println("Change in quality NEW = " + (partA + partB));
+//  System.out.println("Change in quality OLD = " + this.calculateChangeInQualityOld(a));
+//  return partA + partB;
 //  }
-  
-  public double calculateChangeInQuality(SparseVector normalizedVector) {
+
+  /**
+   * Method description
+   *
+   *
+   * @param normalizedVector
+   *
+   * @return
+   */
+  public double calculateChangeInQuality (SparseVector normalizedVector) {
     SparseVector docVec = normalizedVector;
     SparseVector sCopy = this.s;
 
@@ -55,111 +152,121 @@ public class BirchCluster {
     if (this.numberOfDocuments == 0) {
       newQuality = 0;
     } else {
-      newQuality = (1.0 * this.numberOfDocuments) / 
-          (1.0 * (this.numberOfDocuments + 1));
+      newQuality = (1.0 * this.numberOfDocuments) /
+                   (1.0 * (this.numberOfDocuments + 1));
       newQuality *= sCopy.lengthSquared();
     }
 
-    /* Undo our changes to this.s  since sCopy is not really a copy!
+    /*
+     *  Undo our changes to this.s  since sCopy is not really a copy!
      * This should help memory usage since we don't actually need to
      * allocate a new object, we can perform some algebra to put back
      * what we changed.
      */
-    sCopy.add (docVec);
-    sCopy.scalarMultiply (this.numberOfDocuments);
+    sCopy.add(docVec);
+    sCopy.scalarMultiply(this.numberOfDocuments);
 
     return newQuality;
   }
 
-  /***
-   * Adds the document in the vector space model provided as parameters
-   * to this BIRCH like cluster.  The new cluster quality is returned.
+  /**
+   * Method description
    *
-   * Not thread safe
-   */
-  public double addDocument(BirchKmeans vsm, Document doc) {
-    SparseVector normalizedVector = doc.getNormalizedVector(vsm);
-
-    double newQuality = this.calculateChangeInQuality(normalizedVector) + 
-        this.cachedQuality;
-
-    this.numberOfDocuments++;
-    this.s.add(normalizedVector);
-
-    this.sumSquaredLengths += normalizedVector.lengthSquared();
-    this.cachedQuality = newQuality;
-    this.includedFiles.add(doc.getFilename());
-
-    return this.cachedQuality;
-  }
-
-  /***
-   * Adds the document in the vector space model provided as parameters
-   * to this BIRCH like cluster.  This overloaded version allows the caller
-   * to specify the quality of the resulting cluster.  Make sure the caller
-   * calculates this value properly.  This will save several cycles by avoiding
-   * the penalty of calculating a new quality value, when the caller might have
-   * this information already available.
    *
-   * Not thread safe
+   * @param filename
+   *
+   * @return
+   *
+   * @throws Exception
    */
-  public double addDocument(BirchKmeans vsm, Document doc,
-      double forcedNewQuality) {
+  public static BirchCluster deserializeBirchKmeans (String filename)
+  throws Exception {
+    FileInputStream fis = new FileInputStream(filename);
+    ObjectInputStream ois = new ObjectInputStream(fis);
+    BirchCluster bc = (BirchCluster) ois.readObject();
 
-    SparseVector normalizedVector = doc.getNormalizedVector(vsm);
+    ois.close();
+    fis.close();
 
-    double newQuality = forcedNewQuality;
-    
-    this.numberOfDocuments++;
-    this.s.add(normalizedVector);
-    
-    this.sumSquaredLengths += normalizedVector.lengthSquared();
-    this.cachedQuality = newQuality;
-
-    this.includedFiles.add(doc.getFilename());
-    
-    return this.cachedQuality;
+    return bc;
   }
 
-  public int getNumberOfDocuments() {
-    return this.numberOfDocuments;
-  }
-
-  public static void serializeBirchCluster(BirchCluster bc, 
-      String outputFileName) throws Exception {
+  /**
+   * Method description
+   *
+   *
+   * @param bc
+   * @param outputFileName
+   *
+   * @throws Exception
+   */
+  public static void serializeBirchCluster (BirchCluster bc,
+                                            String outputFileName)
+                                            throws Exception {
     FileOutputStream fos = new FileOutputStream(outputFileName);
     ObjectOutputStream oos = new ObjectOutputStream(fos);
+
     oos.writeObject(bc);
     oos.flush();
     oos.close();
     fos.close();
   }
 
-  public String toString() {
+  /**
+   * Method description
+   *
+   *
+   * @return
+   */
+  public String toString () {
     StringBuffer sb = new StringBuffer();
+
     sb.append("Birch Cluster Statistics\n");
     sb.append("Number of Documents: " + this.getNumberOfDocuments() + "\n");
     sb.append("Cluster Quality:     " + this.getQuality() + "\n");
     sb.append("Cluster Sparsity:    " + this.getSparsity() + "\n");
+
     return sb.toString();
   }
-  
-  public int getNumberOfNonZeroElementsInSummaryVector() {
+
+  /**
+   * Method description
+   *
+   *
+   * @return
+   */
+  public int getNumberOfDocuments () {
+    return this.numberOfDocuments;
+  }
+
+  /**
+   * Method description
+   *
+   *
+   * @return
+   */
+  public int getNumberOfNonZeroElementsInSummaryVector () {
     return this.s.getPopCount();
   }
-  
-  public double getSparsity() {
-    return (1.0 * this.getNumberOfNonZeroElementsInSummaryVector()) / 
-        (double)this.dimensionSize;
+
+  /**
+   * Method description
+   *
+   *
+   * @return
+   */
+  public double getQuality () {
+    return this.cachedQuality;
   }
-  
-  public static BirchCluster deserializeBirchKmeans(String filename) 
-      throws Exception {
-    FileInputStream fis = new FileInputStream(filename);
-    ObjectInputStream ois = new ObjectInputStream(fis);
-    BirchCluster bc = (BirchCluster) ois.readObject();
-    ois.close();
-    fis.close();
-    return bc;
+
+  /**
+   * Method description
+   *
+   *
+   * @return
+   */
+  public double getSparsity () {
+    return (1.0 * this.getNumberOfNonZeroElementsInSummaryVector()) /
+           (double) this.dimensionSize;
   }
 }
