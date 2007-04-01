@@ -1,4 +1,15 @@
 /*
+ * @(#)SparseVectorDimensionMismatch.java   04/01/07
+ * 
+ * Copyright (c) 2007 Michael Wiacek, <mike@iroot.net>
+ *
+ * All rights reserved.
+ *
+ */
+
+
+
+/*
  * SparseVectorDimensionMismatch.java
  *
  * Created on March 5, 2006, 2:10 PM
@@ -14,17 +25,28 @@ package sparsevector;
  * @author mike
  */
 public class SparseVectorDimensionMismatch extends Exception {
-
   String message = null;
 
   /** Creates a new instance of SparseVectorDimensionMismatch */
-  public SparseVectorDimensionMismatch() {}
+  public SparseVectorDimensionMismatch () {}
 
+  /**
+   * Constructs ...
+   *
+   *
+   * @param message
+   */
   public SparseVectorDimensionMismatch (String message) {
     this.message = message;
   }
 
-  public String toString() {
+  /**
+   * Method description
+   *
+   *
+   * @return
+   */
+  public String toString () {
     if (message != null) {
       return (message);
     } else {

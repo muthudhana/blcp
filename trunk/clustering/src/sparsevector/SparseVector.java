@@ -1,4 +1,15 @@
 /*
+ * @(#)SparseVector.java   04/01/07
+ * 
+ * Copyright (c) 2007 Michael Wiacek, <mike@iroot.net>
+ *
+ * All rights reserved.
+ *
+ */
+
+
+
+/*
  * SparseVector.java
  *
  * Created on February 26, 2006, 10:52 PM
@@ -9,63 +20,66 @@
 
 package sparsevector;
 
-import java.util.Arrays;
 import java.io.*;
+
+import java.util.Arrays;
 
 /**
  *
  * @author mike
  */
+
 // public class SparseVector extends SparseArray<Double> implements Serializable{
 
 public class SparseVector extends SparseArrayDouble implements Serializable {
   private static final long serialVersionUID = 1370252991810615959L;
   private double sumSquareCoordinates = 0.0;
+
 //    private int popCount = 0;
 
+  /** Creates a new instance of SparseVector */
+  public SparseVector () {}
+
+  /**
+   * Constructs ...
+   *
+   *
+   * @param origin
+   */
   public SparseVector (SparseVector origin) {
     int[] idx = origin.getIndicies();
+
     for (int i = 0; i < idx.length; ++i) {
-      this.set (idx[i], origin.get (idx[i]) );
+      this.set(idx[i], origin.get(idx[i]));
     }
   }
 
+  /**
+   * Method description
+   *
+   *
+   * @param operand
+   */
   public void add (SparseVector operand) {
     int[] idx = operand.getIndicies();
+
     for (int i = 0; i < idx.length; ++i) {
-      double sum = this.get (idx[i]);
-      sum += operand.get (idx[i]);
-      this.set (idx[i], sum);
+      double sum = this.get(idx[i]);
+
+      sum += operand.get(idx[i]);
+
+      this.set(idx[i], sum);
     }
   }
 
-  public void subtract (SparseVector operand) {
-    int[] idx = operand.getIndicies();
-    for (int i = 0; i < idx.length; ++i) {
-      double sum = (Double) this.get (idx[i]);
-      sum -= operand.get (idx[i]);
-      this.set (idx[i], sum);
-    }
-  }
-
-  public void scalarMultiply (double scalar) {
-    int[] idx = this.getIndicies();
-    for (int i = 0; i < idx.length; ++i) {
-      double product = (Double) this.get (idx[i]);
-      product *= scalar;
-      this.set (idx[i], product);
-    }
-  }
-
-  public void scalarDivide (double scalar) {
-    this.scalarMultiply (1D / scalar);
-  }
-
-  public double distanceSquared (SparseVector sv) {
-    double dist = this.distance (sv);
-    return (dist * dist);
-  }
-
+  /**
+   * Method description
+   *
+   *
+   * @param sv
+   *
+   * @return
+   */
   public double distance (SparseVector sv) {
 
     double dist = 0.0;
@@ -78,21 +92,27 @@ public class SparseVector extends SparseArrayDouble implements Serializable {
 
 //        System.out.println("Calculating distance!");
 
-    while (i < idx.length || j < opIdx.length) {
-      if (i < idx.length && j < opIdx.length) {
+    while ((i < idx.length) || (j < opIdx.length)) {
+      if ((i < idx.length) && (j < opIdx.length)) {
         if (idx[i] == opIdx[j]) {
-          double t = this.get (idx[i]);
-          double s = sv.get (opIdx[j]);
+          double t = this.get(idx[i]);
+          double s = sv.get(opIdx[j]);
+
           dist += (t - s) * (t - s);
+
           ++i;
           ++j;
         } else if (idx[i] < opIdx[j]) {
-          double t = this.get (idx[i]);
+          double t = this.get(idx[i]);
+
           dist += t * t;
+
           ++i;
         } else if (idx[i] > opIdx[j]) {
-          double s = sv.get (opIdx[j]);
+          double s = sv.get(opIdx[j]);
+
           dist += s * s;
+
           ++j;
         }
 
@@ -100,60 +120,59 @@ public class SparseVector extends SparseArrayDouble implements Serializable {
 
       } else {
 
-        /* One array or the other is finished, so let's just
+        /*
+         *  One array or the other is finished, so let's just
          * eat up whats left and add it to dist.
          */
 
-        if (i < idx.length && j >= opIdx.length) {
+        if ((i < idx.length) && (j >= opIdx.length)) {
           for (; i < idx.length; ++i) {
-            double val = this.get (idx[i]);
+            double val = this.get(idx[i]);
+
             dist += val * val;
           }
         }
 
-        if (i >= idx.length && j < opIdx.length) {
+        if ((i >= idx.length) && (j < opIdx.length)) {
           for (; j < opIdx.length; ++j) {
-            double val = sv.get (opIdx[j]);
+            double val = sv.get(opIdx[j]);
+
             dist += val * val;
           }
         }
       }
     }
-// System.out.println("Distance calculated!");
-    return (Math.sqrt (dist) );
+
+//  System.out.println("Distance calculated!");
+    return (Math.sqrt(dist));
+
 //        SparseVector copy = new SparseVector(this);
 //        copy.subtract(sv);
 //        return(copy.length());
   }
 
-  public void normalize() {
-    int[] idx = this.getIndicies();
-    double normalizationFactor = this.length();
+  /**
+   * Method description
+   *
+   *
+   * @param sv
+   *
+   * @return
+   */
+  public double distanceSquared (SparseVector sv) {
+    double dist = this.distance(sv);
 
-    for (int i = 0; i < idx.length; ++i) {
-      this.set (idx[i], this.get (idx[i]) / normalizationFactor);
-    }
+    return (dist * dist);
   }
 
-  public double get (int key) {
-    Double val = super.get (key);
-    if (val == null) {
-      return (0.0);
-    } else {
-      return (val);
-    }
-  }
-
-  public double length() {
-    return (Math.sqrt (this.sumSquareCoordinates) );
-    // return(Math.sqrt(this.dotProduct(this)));
-  }
-
-  public double lengthSquared() {
-    return (this.sumSquareCoordinates);
-    // return(this.dotProduct(this));
-  }
-
+  /**
+   * Method description
+   *
+   *
+   * @param rvalue
+   *
+   * @return
+   */
   public double dotProduct (SparseVector rvalue) {
 
     int[] rkeys = rvalue.getIndicies();
@@ -163,43 +182,162 @@ public class SparseVector extends SparseArrayDouble implements Serializable {
 
     if (rkeys.length > lkeys.length) {
       for (int i = 0; i < lkeys.length; ++i) {
-        dotProduct += this.get (lkeys[i]) * rvalue.get (lkeys[i]);
+        dotProduct += this.get(lkeys[i]) * rvalue.get(lkeys[i]);
       }
     } else {
       for (int i = 0; i < rkeys.length; ++i) {
-        dotProduct += this.get (rkeys[i]) * rvalue.get (rkeys[i]);
+        dotProduct += this.get(rkeys[i]) * rvalue.get(rkeys[i]);
       }
     }
+
     return (dotProduct);
   }
 
-  public void set (int key, double value) {
-    if (value == 0D) {  // 0 is a default value... remove if value = 0
-      double curVal = this.get (key);
-      this.sumSquareCoordinates -= curVal * curVal;
-      super.remove (key);
-    } else {
-      double curVal = this.get (key);
-      if (curVal != 0D) {
-        this.sumSquareCoordinates -= curVal * curVal;
-      }
-      this.sumSquareCoordinates += value * value;
-      super.set (key, value);
+  /**
+   * Method description
+   *
+   *
+   * @return
+   */
+  public double length () {
+    return (Math.sqrt(this.sumSquareCoordinates));
+
+    // return(Math.sqrt(this.dotProduct(this)));
+  }
+
+  /**
+   * Method description
+   *
+   *
+   * @return
+   */
+  public double lengthSquared () {
+    return (this.sumSquareCoordinates);
+
+    // return(this.dotProduct(this));
+  }
+
+  /**
+   * Method description
+   *
+   */
+  public void normalize () {
+    int[] idx = this.getIndicies();
+    double normalizationFactor = this.length();
+
+    for (int i = 0; i < idx.length; ++i) {
+      this.set(idx[i], this.get(idx[i]) / normalizationFactor);
     }
   }
 
-  /** Creates a new instance of SparseVector */
-  public SparseVector() {
+  /**
+   * Method description
+   *
+   *
+   * @param scalar
+   */
+  public void scalarDivide (double scalar) {
+    this.scalarMultiply(1D / scalar);
   }
 
-  public String toString() {
+  /**
+   * Method description
+   *
+   *
+   * @param scalar
+   */
+  public void scalarMultiply (double scalar) {
+    int[] idx = this.getIndicies();
+
+    for (int i = 0; i < idx.length; ++i) {
+      double product = (Double) this.get(idx[i]);
+
+      product *= scalar;
+
+      this.set(idx[i], product);
+    }
+  }
+
+  /**
+   * Method description
+   *
+   *
+   * @param operand
+   */
+  public void subtract (SparseVector operand) {
+    int[] idx = operand.getIndicies();
+
+    for (int i = 0; i < idx.length; ++i) {
+      double sum = (Double) this.get(idx[i]);
+
+      sum -= operand.get(idx[i]);
+
+      this.set(idx[i], sum);
+    }
+  }
+
+  /**
+   * Method description
+   *
+   *
+   * @return
+   */
+  public String toString () {
     String s = "Vector Contents:\n";
     int[] idx = this.getIndicies();
-    Arrays.sort (idx);
+
+    Arrays.sort(idx);
+
     for (int i = 0; i < idx.length; ++i) {
-      s += "[" + idx[i] + "] = " + this.get (idx[i]) + "\n";
+      s += "[" + idx[i] + "] = " + this.get(idx[i]) + "\n";
     }
+
     return (s);
   }
 
+  /**
+   * Method description
+   *
+   *
+   * @param key
+   *
+   * @return
+   */
+  public double get (int key) {
+    Double val = super.get(key);
+
+    if (val == null) {
+      return (0.0);
+    } else {
+      return (val);
+    }
+  }
+
+  /**
+   * Method description
+   *
+   *
+   * @param key
+   * @param value
+   */
+  public void set (int key,
+                   double value) {
+    if (value == 0D) {    // 0 is a default value... remove if value = 0
+      double curVal = this.get(key);
+
+      this.sumSquareCoordinates -= curVal * curVal;
+
+      super.remove(key);
+    } else {
+      double curVal = this.get(key);
+
+      if (curVal != 0D) {
+        this.sumSquareCoordinates -= curVal * curVal;
+      }
+
+      this.sumSquareCoordinates += value * value;
+
+      super.set(key, value);
+    }
+  }
 }
