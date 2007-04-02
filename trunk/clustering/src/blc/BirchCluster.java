@@ -20,10 +20,11 @@ import java.io.*;
 import java.util.*;
 
 /**
- * Class description
+ * This class represents a BIRCH cluster and contains methods to interact
+ * with the cluster.
  *
  *
- * @version    Enter version here..., 04/01/07
+ * @version    1.0, 04/01/07
  * @author     Mike Wiacek
  */
 public class BirchCluster {
@@ -36,10 +37,9 @@ public class BirchCluster {
   private double cachedQuality = 0.0;
 
   /**
-   * Constructs ...
+   * Make a new BIRCH cluster.
    *
-   *
-   * @param numDistinctTerms
+   * @param numDistinctTerms The number of distinct terms in the corpus
    */
   public BirchCluster (int numDistinctTerms) {
     this.s = new SparseVector();
@@ -56,10 +56,10 @@ public class BirchCluster {
    *
    * Not thread safe
    *
-   * @param vsm
-   * @param doc
+   * @param vsm BirchKmeans object that this cluster belongs to
+   * @param doc Document to be added to this cluster.
    *
-   * @return
+   * @return New quality of this cluster with the document added.
    */
   public double addDocument (BirchKmeans vsm,
                              Document doc) {
@@ -90,11 +90,11 @@ public class BirchCluster {
    *
    * Not thread safe
    *
-   * @param vsm
-   * @param doc
-   * @param forcedNewQuality
+   * @param vsm BirchKmeans object that this cluster belongs to
+   * @param doc Document to be added to this cluster.
+   * @param forcedNewQuality Force the new quality of the cluster.
    *
-   * @return
+   * @return Returns forcedNewQuality
    */
   public double addDocument (BirchKmeans vsm,
                              Document doc,
@@ -116,29 +116,13 @@ public class BirchCluster {
     return this.cachedQuality;
   }
 
-//  public double calculateChangeInQuality(SparseVector a) {
-//  double currentQuality = this.getQuality();
-//  SparseVector val = new SparseVector(this.s);
-//  val.scalarMultiply(this.getNumberOfDocuments());
-//  val.add(a);
-//  val.scalarDivide(1 + this.getNumberOfDocuments());
-//  val.subtract(a);
-//  double partA = val.lengthSquared();
-//  val.add(a);
-//  val.subtract(this.s);
-//  double partB = this.getNumberOfDocuments() * val.lengthSquared();
-//  System.out.println("Change in quality NEW = " + (partA + partB));
-//  System.out.println("Change in quality OLD = " + this.calculateChangeInQualityOld(a));
-//  return partA + partB;
-//  }
-
   /**
-   * Method description
+   * Calculate what the change in quality would be if a document with the
+   * provided normalized vector was added to this cluster.
    *
+   * @param normalizedVector A unit length sparse vector
    *
-   * @param normalizedVector
-   *
-   * @return
+   * @return What the change in quality would be if a new document was added.
    */
   public double calculateChangeInQuality (SparseVector normalizedVector) {
     SparseVector docVec = normalizedVector;
@@ -170,14 +154,13 @@ public class BirchCluster {
   }
 
   /**
-   * Method description
+   * Load a serialized BirchCluster object in from disk.
    *
+   * @param filename Location on the filesystem of a serialized BirchCluster
    *
-   * @param filename
+   * @return BirchCluster object.
    *
-   * @return
-   *
-   * @throws Exception
+   * @throws Exception On unable to load a serialized object.
    */
   public static BirchCluster deserializeBirchKmeans (String filename)
   throws Exception {
@@ -192,13 +175,13 @@ public class BirchCluster {
   }
 
   /**
-   * Method description
+   * Serialize a provided BirchCluster object to disk.
    *
    *
-   * @param bc
-   * @param outputFileName
+   * @param bc  BirchCluster object to serialize out.
+   * @param outputFileName Location of where to serialize the object.
    *
-   * @throws Exception
+   * @throws Exception Error in case of filesystem or serialization error. 
    */
   public static void serializeBirchCluster (BirchCluster bc,
                                             String outputFileName)
@@ -213,10 +196,10 @@ public class BirchCluster {
   }
 
   /**
-   * Method description
+   * Returns a textual description of the state of this object.
    *
    *
-   * @return
+   * @return 
    */
   public String toString () {
     StringBuffer sb = new StringBuffer();
@@ -230,40 +213,28 @@ public class BirchCluster {
   }
 
   /**
-   * Method description
-   *
-   *
-   * @return
+   * @return Number of documents this cluster represents.
    */
   public int getNumberOfDocuments () {
     return this.numberOfDocuments;
   }
 
   /**
-   * Method description
-   *
-   *
-   * @return
+   * @return Return the number of non-zero elements in our centroid vector.
    */
   public int getNumberOfNonZeroElementsInSummaryVector () {
     return this.s.getPopCount();
   }
 
   /**
-   * Method description
-   *
-   *
-   * @return
+   * @return Current quality of this cluster.
    */
   public double getQuality () {
     return this.cachedQuality;
   }
 
   /**
-   * Method description
-   *
-   *
-   * @return
+   * @return Sparsity of this cluster's centroid vector.
    */
   public double getSparsity () {
     return (1.0 * this.getNumberOfNonZeroElementsInSummaryVector()) /

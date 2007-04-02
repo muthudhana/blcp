@@ -29,10 +29,10 @@ enum TermReductionApproach implements Serializable{USE_TERM_REDUCTION,
                                                    NO_TERM_REDUCTION}
 
 /**
- * Class description
+ * This object is used to represent the configured settings for the BIRCH
+ * clustering engine.
  *
- *
- * @version    Enter version here..., 04/01/07
+ * @version    1.0, 04/01/07
  * @author     Mike Wiacek
  */
 public class BirchClusterOptions implements Serializable {
@@ -47,7 +47,7 @@ public class BirchClusterOptions implements Serializable {
   private double capacityFraction = -1.0;
 
   /**
-   * Constructs ...
+   * Create a new BirchClusterOptions object.
    *
    */
   public BirchClusterOptions () {
@@ -55,14 +55,14 @@ public class BirchClusterOptions implements Serializable {
   }
 
   /**
-   * Method description
+   * Load a serialized object from disk.
    *
    *
-   * @param filename
+   * @param filename Filename of the serialize BirchClusterOptions object.
    *
-   * @return
+   * @return An instance of the serialized BirchClusterOptions object.
    *
-   * @throws Exception
+   * @throws Exception If there is a file system or serialization error.
    */
   public static BirchClusterOptions deserializeBirchClusterOptions (
       String filename) throws Exception {
@@ -77,13 +77,13 @@ public class BirchClusterOptions implements Serializable {
   }
 
   /**
-   * Method description
+   * Take a live BirchClusterOptions object and write it to disk.
    *
    *
-   * @param bco
-   * @param outputFileName
+   * @param bco BirchClusterOptions object to serialize.
+   * @param outputFileName Filename of where to store the serialized object.
    *
-   * @throws Exception
+   * @throws Exception If there is a file system or serialization error.
    */
   public static void serializeBirchClusterOptions (BirchClusterOptions bco,
                                                    String outputFileName)
@@ -102,11 +102,11 @@ public class BirchClusterOptions implements Serializable {
   }
 
   /**
-   * Method description
+   * This is currently unused, but is fully functional. For those settings
+   * that don't have method calls, store values in an internal hash table.
    *
-   *
-   * @param key
-   * @param value
+   * @param key Identifier of setting name.
+   * @param value Value to store for the responding key.
    */
   public void store (String key,
                      String value) {
@@ -116,10 +116,7 @@ public class BirchClusterOptions implements Serializable {
   }
 
   /**
-   * Method description
-   *
-   *
-   * @return
+   * @return Returns a human readable description of this instance.
    */
   public String toString () {
     StringBuffer sb = new StringBuffer();
@@ -150,10 +147,11 @@ public class BirchClusterOptions implements Serializable {
   }
 
   /**
-   * Method description
+   * Evaluate the settings configured in this object and determine if they
+   * corespond to a valid clustering configuration.
    *
    *
-   * @return
+   * @return true if this object is represents a valid configuration, else false
    */
   public boolean verify () {
 
@@ -199,12 +197,12 @@ public class BirchClusterOptions implements Serializable {
   }
 
   /**
-   * Method description
+   * See BirchClusterOptions.get() for more information
    *
    *
-   * @param key
+   * @param key Setting name to retrieve from our internal settings hash table.
    *
-   * @return
+   * @return Stored setting value
    */
   public String get (String key) {
     String value = this.miscStringSettings.get(key);
@@ -217,10 +215,7 @@ public class BirchClusterOptions implements Serializable {
   }
 
   /**
-   * Method description
-   *
-   *
-   * @return
+   * @return A comma delimited value representing the settings of this object.
    */
   public String getCSV () {
     StringBuffer sb = new StringBuffer();
@@ -253,70 +248,49 @@ public class BirchClusterOptions implements Serializable {
   }
 
   /**
-   * Method description
-   *
-   *
-   * @return
+   * @return Stored capacity fraction.
    */
   public double getCapacityFraction () {
     return this.capacityFraction;
   }
 
   /**
-   * Method description
-   *
-   *
-   * @return
+   * @return Stored clustering approach.
    */
   public ClusteringApproach getClusteringApproach () {
     return this.clusteringApproach;
   }
 
   /**
-   * Method description
-   *
-   *
-   * @return
+   * @return Stored clustering order.
    */
   public ClusteringOrder getClusteringOrder () {
     return this.clusteringOrder;
   }
 
   /**
-   * Method description
-   *
-   *
-   * @return
+   * @return Maximum allowed cluster size.
    */
   public int getMaxClusterSize () {
     return this.maxClusterSize;
   }
 
   /**
-   * Method description
-   *
-   *
-   * @return
+   * @return The maximum number of terms to used in the clustering process.
    */
   public int getMaxTermLimit () {
     return this.termLimit;
   }
 
   /**
-   * Method description
-   *
-   *
-   * @return
+   * @return Return the threshold value for reasonable effort clustering.
    */
   public double getReasonableEffortValue () {
     return this.maxTrialsForReasonableEffort;
   }
 
   /**
-   * Method description
-   *
-   *
-   * @return
+   * @return A snippet of SQL representing this object.
    */
   public String getSQL () {
     StringBuffer sb = new StringBuffer();
@@ -347,32 +321,23 @@ public class BirchClusterOptions implements Serializable {
   }
 
   /**
-   * Method description
-   *
-   *
-   * @return
+   * @return Stored term reduction approach.
    */
   public TermReductionApproach getTermReductionApproach () {
     return this.termReductionApproach;
   }
 
   /**
-   * Method description
-   *
-   *
-   * @param cf
+   * @param cf Stored capacity fraction.
    */
   public void setCapacityFraction (double cf) {
     this.capacityFraction = cf;
   }
 
   /**
-   * Method description
+   * @param c ClusteringApproach to be used for clustering.
    *
-   *
-   * @param c
-   *
-   * @return
+   * @return The clustering approach that was just set.
    */
   public ClusteringApproach setClusteringApproach (ClusteringApproach c) {
     this.clusteringApproach = c;
@@ -381,12 +346,9 @@ public class BirchClusterOptions implements Serializable {
   }
 
   /**
-   * Method description
+   * @param c ClusteringOrder to be used for clustering.
    *
-   *
-   * @param c
-   *
-   * @return
+   * @return The clustering order that was just set.
    */
   public ClusteringOrder setClusteringOrder (ClusteringOrder c) {
     this.clusteringOrder = c;
@@ -395,10 +357,10 @@ public class BirchClusterOptions implements Serializable {
   }
 
   /**
-   * Method description
+   * Set the maximum number of documents any cluster can represent.
    *
    *
-   * @param maxSize
+   * @param maxSize Maximum number of documents a cluster may represent.
    */
   public void setMaxClusterSize (int maxSize) {
     this.maxClusterSize = maxSize;
@@ -408,9 +370,9 @@ public class BirchClusterOptions implements Serializable {
    * Setting this value <= 0 will disable term reduction completely.
    * Setting it to a value > 0 will enable term reduction.
    *
-   * @param termLimit
+   * @param termLimit If > 0, term are limited to that value, else no reduction 
    *
-   * @return
+   * @return New term reduction approach.
    */
   public TermReductionApproach setMaxTermLimit (int termLimit) {
     this.termLimit = termLimit;
@@ -426,12 +388,9 @@ public class BirchClusterOptions implements Serializable {
   }
 
   /**
-   * Method description
+   * @param value Fraction of eligible clusters to check for potential clusters.
    *
-   *
-   * @param value
-   *
-   * @return
+   * @return Current clustering approach.
    */
   public ClusteringApproach setReasonableEffortValue (double value) {
     this.maxTrialsForReasonableEffort = value;
@@ -440,12 +399,12 @@ public class BirchClusterOptions implements Serializable {
   }
 
   /**
-   * Method description
+   * To enable term reduction, call this function and then call 
+   * BirchClusterOptions.setMaxTermLimit() with a paramter > 0.
    *
+   * @param t TermReductionApproach to use.
    *
-   * @param t
-   *
-   * @return
+   * @return Current TermReductionApproach.
    */
   public TermReductionApproach setTermReductionApproach (
       TermReductionApproach t) {
