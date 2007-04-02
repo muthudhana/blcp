@@ -20,10 +20,10 @@ import java.io.*;
 import java.util.*;
 
 /**
- * Class description
+ * Create serialized documents, this includes parsing, stemming, etc.
  *
  *
- * @version    Enter version here..., 04/01/07
+ * @version    1.0, 04/01/07
  * @author     Mike Wiacek
  */
 public class BirchDocumentFactory {
@@ -32,11 +32,8 @@ public class BirchDocumentFactory {
   private boolean verboseOutput = false;
 
   /**
-   * Constructs ...
-   *
-   *
-   * @param stopList
-   * @param stemmer
+   * @param stopList StopList object that removes common English words.
+   * @param stemmer Interface to an object that implements a stemmer function.
    */
   public BirchDocumentFactory (StopList stopList,
                                IStemmer stemmer) {
@@ -45,24 +42,28 @@ public class BirchDocumentFactory {
   }
 
   /**
-   * Method description
-   *
-   *
-   * @return
+   * @return True if we should print verbose information to the logs.
    */
   public boolean beVerbose () {
     return this.verboseOutput;
   }
 
   /**
-   * Method description
+   * This function parses documents in a directory tree. The Document objects it
+   * creates are not linked to any particular model.
    *
+   * The output files will be created in the provided outputDirectory with the
+   * same relative heirarchy as seen in the source directory.
    *
-   * @param srcDirectory
-   * @param outDirectory
-   * @param fileNum
+   * This calls the overloaded createSerializedDocument with a common source id
+   * of 1.
+   * 
    *
-   * @return
+   * @param srcDirectory  Directory to start scanning for documents.
+   * @param outDirectory  Directory to output serialized documents.
+   * @param fileNum Used to track number of processed files through recursion.
+   *
+   * @return Number of files processed in total.
    */
   public int createSerializedDocuments (String srcDirectory,
                                         String outDirectory,
@@ -78,12 +79,12 @@ public class BirchDocumentFactory {
    * The output files will be created in the provided outputDirectory with the
    * same relative heirarchy as seen in the source directory.
    *
-   * @param directory
-   * @param sourceId
-   * @param outputDirectory
-   * @param fileNum
+   * @param directory Directory to start scanning for documents.
+   * @param sourceId Tag documents with a unique source identifier, not used.
+   * @param outputDirectory Directory to output serialized documents.
+   * @param fileNum Used to track number of processed files through recursion.
    *
-   * @return
+   * @return Number of files processed in total.
    */
   public int createSerializedDocuments (String directory,
                                         int sourceId,
@@ -138,12 +139,9 @@ public class BirchDocumentFactory {
   }
 
   /**
-   * Method description
+   * @param verboseOutputEnabled If true, enable verbose output of any actions.
    *
-   *
-   * @param verboseOutputEnabled
-   *
-   * @return
+   * @return True if verbose output is enabled.
    */
   public boolean setVerboseOuput (boolean verboseOutputEnabled) {
     this.verboseOutput = verboseOutputEnabled;
