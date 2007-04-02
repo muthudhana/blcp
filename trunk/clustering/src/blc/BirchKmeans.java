@@ -23,7 +23,8 @@ import java.io.*;      // need File
 import java.util.*;    // need Hashtable and ArrayList
 
 /**
- * Class description
+ * The major bulk of BIRCH occurs in this object.  Can be viewed as the kernel
+ * of our BIRCH clustering engine.
  *
  *
  * @version    1.0, 04/01/07
