@@ -3,19 +3,13 @@
  * 
  * Copyright (c) 2007 Michael Wiacek, <mike@iroot.net>
  *
- * All rights reserved.
+ * This is based on the Java reference implementation of the porter stemmer
+ * found here: http://www.tartarus.org/~martin/PorterStemmer/java.txt
  *
- */
-
-
-
-/*
- * Stemmer.java
+ * I have modified it to integrate with my clustering engine.  I reserve
+ * all Copyright rights except those that would be legally owned by the
+ * original author.  I herby credit his contribution to my project here.
  *
- * Created on February 13, 2006, 1:05 AM
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
  */
 
 package clusterbase;
