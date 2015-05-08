@@ -1,0 +1,1 @@
+An implementation of BIRCH like clustering.  This code is ugly and a big proof of concept. Don't expect much. :-)
